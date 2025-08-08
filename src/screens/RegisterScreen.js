@@ -58,7 +58,6 @@ const RegisterScreen = ({ navigation }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Intentamos obtener la cookie manualmente
         const cookie = response.headers.get('set-cookie');
 
         if (!cookie) {
@@ -68,13 +67,11 @@ const RegisterScreen = ({ navigation }) => {
 
         Alert.alert('Registro exitoso', data.message || 'Usuario registrado. Verifica tu correo.');
 
-        // Navegar a pantalla de verificación pasando email y cookie
         navigation.navigate('VerificationScreen', {
           email,
           verificationCookie: cookie,
         });
 
-        // Limpiar formulario
         setName('');
         setLastname('');
         setEmail('');
@@ -108,18 +105,21 @@ const RegisterScreen = ({ navigation }) => {
         <TextInput
           style={styles.input}
           placeholder="Nombre"
+          placeholderTextColor="#666"
           value={name}
           onChangeText={setName}
         />
         <TextInput
           style={styles.input}
           placeholder="Apellido"
+          placeholderTextColor="#666"
           value={lastname}
           onChangeText={setLastname}
         />
         <TextInput
           style={styles.input}
           placeholder="Correo electrónico"
+          placeholderTextColor="#666"
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
@@ -129,6 +129,7 @@ const RegisterScreen = ({ navigation }) => {
           <TextInput
             style={styles.passwordInput}
             placeholder="Contraseña"
+            placeholderTextColor="#666"
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
@@ -140,6 +141,7 @@ const RegisterScreen = ({ navigation }) => {
         <TextInput
           style={styles.input}
           placeholder="Teléfono"
+          placeholderTextColor="#666"
           keyboardType="phone-pad"
           value={phone}
           onChangeText={setPhone}
@@ -203,14 +205,19 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     flex: 1,
+    justifyContent: 'center', // centra verticalmente
+    alignItems: 'center',     // centra horizontalmente
+    marginTop: 40,            // espacio arriba para separar del header
   },
   input: {
     backgroundColor: '#E6E6E6',
     borderRadius: 10,
     paddingHorizontal: 15,
     paddingVertical: 12,
-    marginBottom: 15,
+    marginBottom: 30,         // espacio más grande entre inputs
     fontSize: 16,
+    color: '#000',
+    width: '80%',             // ancho fijo para inputs
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -218,12 +225,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6E6E6',
     borderRadius: 10,
     paddingHorizontal: 12,
-    marginBottom: 15,
+    marginBottom: 30,         // aumenta espacio aquí también
+    width: '80%',
   },
   passwordInput: {
     flex: 1,
     fontSize: 16,
     paddingVertical: 12,
+    color: '#000',
   },
   toggleText: {
     color: '#0B0F33',
@@ -235,6 +244,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 10,
     marginTop: 10,
+    width: '80%',             // mismo ancho que inputs
   },
   buttonText: {
     color: '#fff',
