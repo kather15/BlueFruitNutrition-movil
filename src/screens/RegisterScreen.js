@@ -1,26 +1,18 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ScrollView,
-  Platform,
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Platform,
 } from 'react-native';
-
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const API_URL = 'http://192.168.1.2:4000/api/registerCustomers';
 
-const RegisterScreen = () => {
+const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [lastname, setLastname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [birthdate, setBirthdate] = useState(''); // 'YYYY-MM-DD'
+  const [birthdate, setBirthdate] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -44,14 +36,6 @@ const RegisterScreen = () => {
     birthdate.trim();
 
   const handleRegister = async () => {
-    console.log('Datos enviados al backend:', {
-      name,
-      lastName: lastname, // Cambia aquí
-      email,
-      password,
-      dateBirth: birthdate, // Cambia aquí
-    });
-
     if (!isAdult(birthdate)) {
       Alert.alert('Error', 'Debes ser mayor de edad para registrarte');
       return;
@@ -63,17 +47,34 @@ const RegisterScreen = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
-          lastName: lastname, // Cambia aquí
+          lastName: lastname,
           email,
           password,
-          dateBirth: birthdate, // Cambia aquí
+          phone,
+          dateBirth: birthdate,
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        Alert.alert('Registro exitoso', data.message || 'Usuario registrado correctamente');
+        // Intentamos obtener la cookie manualmente
+        const cookie = response.headers.get('set-cookie');
+
+        if (!cookie) {
+          Alert.alert('Error', 'No se recibió la cookie de verificación. Asegúrate que el backend permita exponerla.');
+          return;
+        }
+
+        Alert.alert('Registro exitoso', data.message || 'Usuario registrado. Verifica tu correo.');
+
+        // Navegar a pantalla de verificación pasando email y cookie
+        navigation.navigate('VerificationScreen', {
+          email,
+          verificationCookie: cookie,
+        });
+
+        // Limpiar formulario
         setName('');
         setLastname('');
         setEmail('');
@@ -81,14 +82,9 @@ const RegisterScreen = () => {
         setPhone('');
         setBirthdate('');
       } else {
-        if (data.message && data.message.toLowerCase().includes('existe')) {
-          Alert.alert('Error', 'Ya hay un usuario registrado con ese correo electrónico o teléfono');
-        } else {
-          Alert.alert('Error', data.message || 'Ocurrió un error en el registro');
-        }
+        Alert.alert('Error', data.message || 'Error en el registro');
       }
     } catch (error) {
-      console.error(error);
       Alert.alert('Error', 'No se pudo conectar con el servidor');
     }
   };
