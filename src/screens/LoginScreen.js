@@ -1,4 +1,4 @@
-// screens/LoginScreen.js
+// screens/LoginScreen.js, creada por motivos del desarrollo del registro
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
