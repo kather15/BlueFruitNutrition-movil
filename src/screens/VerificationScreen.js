@@ -27,7 +27,7 @@ const VerificationScreen = ({ route, navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.1.2:4000/api/registerCustomers/verifyCodeEmail', {
+      const response = await fetch('https://bluefruitnutrition1.onrender.com/api/registerCustomers/verifyCodeEmail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
