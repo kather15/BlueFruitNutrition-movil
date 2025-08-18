@@ -46,7 +46,7 @@ export default function App() {
   if (isLoading) {
     return (
       <>
-        <StatusBar style="light" backgroundColor="#0C133F" />
+        <StatusBar style="light" backgroundColor="#0C133F" translucent={false} />
         <LoadingScreen onLoadingComplete={handleLoadingComplete} />
       </>
     );
@@ -55,7 +55,7 @@ export default function App() {
   // Mostrar la aplicación principal
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar style="light" backgroundColor="#0C133F" translucent={false} />
       <AppNavigator />
     </>
   );

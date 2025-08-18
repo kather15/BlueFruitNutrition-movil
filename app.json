@@ -7,23 +7,27 @@
     "icon": "./assets/logoBlueFrui.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "backgroundColor": "#0C133F",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logoBlueFrui.png",
       "resizeMode": "contain",
       "backgroundColor": "#0C133F"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "backgroundColor": "#0C133F"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logoBlueFrui.png",
         "backgroundColor": "#0C133F"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "backgroundColor": "#0C133F"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/logoBlueFrui.png",
+      "backgroundColor": "#0C133F"
     }
   }
 }
