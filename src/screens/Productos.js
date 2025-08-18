@@ -1,17 +1,28 @@
 // ProductsList.jsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+
+const { width } = Dimensions.get('window'); // ancho de la pantalla
+const CARD_WIDTH = (width / 2) - 25; // tamaño dinámico para que siempre se vea bien
 
 const ProductsList = () => {
   const navigation = useNavigation();
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/products') // ajusta URL a tu backend
+    fetch('http://10.0.2.2:4000/api/products')
       .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(err => console.error(err));
+      .then(data => {
+        console.log('Productos recibidos:', data);
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error al obtener productos:', err);
+        setLoading(false);
+      });
   }, []);
 
   const renderItem = ({ item }) => (
@@ -19,13 +30,32 @@ const ProductsList = () => {
       style={styles.card}
       onPress={() => navigation.navigate('ProductDetail', { id: item._id })}
     >
-      <Image source={{ uri: item.image || 'https://via.placeholder.com/150' }} style={styles.image} />
+      <Image 
+        source={{ uri: item.image || 'https://via.placeholder.com/150' }} 
+        style={styles.image} 
+      />
       <Text style={styles.name}>{item.name}</Text>
-      <View style={styles.button}>
+      <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Ver Producto</Text>
-      </View>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#1a1a3a" />
+      </View>
+    );
+  }
+
+  if (!products.length) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text>No hay productos disponibles.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -33,23 +63,68 @@ const ProductsList = () => {
       <FlatList
         data={products}
         renderItem={renderItem}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item._id || item.id}
         numColumns={2}
-        columnWrapperStyle={styles.row}
+        columnWrapperStyle={{ justifyContent: 'space-between' }}
+        contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 10 }}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: '#fff' },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  row: { justifyContent: 'space-between' },
-  card: { backgroundColor: '#f8f9fa', borderRadius: 10, padding: 10, marginBottom: 10, width: '48%' },
-  image: { width: '100%', height: 120, resizeMode: 'contain' },
-  name: { fontSize: 16, fontWeight: 'bold', marginTop: 10 },
-  button: { backgroundColor: '#1a1a3a', padding: 5, marginTop: 5, borderRadius: 5, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
+  container: { 
+    flex: 1, 
+    paddingTop: 15, 
+    backgroundColor: '#fff',
+  },
+  title: { 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    marginBottom: 15, 
+    color: '#0B1541', 
+    textAlign: 'center' 
+  },
+  card: { 
+    width: CARD_WIDTH,
+    backgroundColor: '#f8f9fa', 
+    borderRadius: 15, 
+    padding: 12, 
+    marginBottom: 15, 
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  image: { 
+    width: '100%', 
+    height: 140, 
+    resizeMode: 'contain',
+    borderRadius: 10,
+  },
+  name: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    marginTop: 10, 
+    textAlign: 'center',
+    color: '#333'
+  },
+  button: { 
+    backgroundColor: '#0B1541', 
+    paddingVertical: 10, 
+    marginTop: 12, 
+    borderRadius: 8, 
+    alignItems: 'center',
+    width: '100%',
+  },
+  buttonText: { 
+    color: '#fff', 
+    fontWeight: 'bold', 
+    fontSize: 14 
+  },
 });
 
 export default ProductsList;

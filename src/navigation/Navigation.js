@@ -13,18 +13,20 @@ import NewPasswordScreen from '../screens/NewPasswordScreen';
 import PasswordRecovery from '../screens/PasswordRecovery';
 
 // Nuevas pantallas de productos
-import ProductsList from '../screens/ProductsList';
-import ProductDetail from '../screens/ProductDetail';
+import ProductsList from '../screens/Productos.js';
+import ProductDetail from '../screens/VerProductos.js';
+import TabNavigator from '../navigation/tabNavigation.js'
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="prueba" screenOptions={{ headerShown: false }}>
         {/* Pantallas de usuario */}
         <Stack.Screen name="IMCScreen" component={IMCScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+          <Stack.Screen name="prueba" component={TabNavigator} />
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
         <Stack.Screen name="Login" component={LoginScreen} /> 
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
