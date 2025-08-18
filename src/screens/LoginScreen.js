@@ -48,7 +48,13 @@ const LoginScreen = ({ navigation }) => {
         }
 
         Alert.alert('Éxito', 'Login exitoso');
-        navigation.replace('Dashboard');
+
+        // Navega a HomeScreen y pasa los datos del usuario
+        navigation.replace('HomeScreen', {
+          userId: data.id,
+          userName: data.name,
+        });
+
       } else {
         Alert.alert('Error', data.message || 'Credenciales incorrectas');
       }
@@ -59,17 +65,15 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <Text style={styles.title}>Iniciar Sesión</Text>
       <Text style={styles.subtitle}>Ingresa tus datos a continuación</Text>
 
-      {/* Contenedor principal con bordes redondeados */}
       <View style={styles.mainContainer}>
         <View style={styles.formContainer}>
-
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
@@ -95,10 +99,10 @@ const LoginScreen = ({ navigation }) => {
             />
           </View>
 
-          <TouchableOpacity 
-  style={styles.forgotPassword} 
-  onPress={() => navigation.navigate('PasswordRecovery')}
->
+          <TouchableOpacity
+            style={styles.forgotPassword}
+            onPress={() => navigation.navigate('PasswordRecovery')}
+          >
             <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
           </TouchableOpacity>
 
@@ -129,33 +133,7 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0C133F', // Fondo azul específico
-  },
-  header: {
     backgroundColor: '#0C133F',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: '#3b82f6',
-  },
-  headerTitle: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '500',
-  },
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#0C133F',
-  },
-  formContainer: {
-    backgroundColor: '#ffffff',
-    width: '100%',
-    paddingHorizontal: 30,
-    paddingVertical: 40,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    flex: 1,
   },
   title: {
     fontSize: 32,
@@ -170,6 +148,18 @@ const styles = StyleSheet.create({
     color: '#b0b7c3',
     textAlign: 'center',
     marginBottom: 40,
+  },
+  mainContainer: {
+    flex: 1,
+    backgroundColor: '#0C133F',
+  },
+  formContainer: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 30,
+    paddingVertical: 40,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    flex: 1,
   },
   inputContainer: {
     marginBottom: 20,
@@ -199,14 +189,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 25,
-    shadowColor: '#0C133F',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
   loginButtonText: {
     color: '#ffffff',
