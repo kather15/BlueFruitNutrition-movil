@@ -54,16 +54,25 @@ La aplicación móvil de **Blue Fruit Nutrición** es una extensión de la plata
 - **Notificaciones push** para ofertas y actualizaciones
 - **Acceso offline** para consulta de productos guardados
 
-## 🛠️ Tecnologías Utilizadas
 
 ### 📱 Stack Móvil
-| Tecnología | Versión | Propósito |
-|------------|---------|-----------|
-| **React Native** | 0.79.5 | Framework de desarrollo móvil |
-| **Expo** | ~53.0.20 | Plataforma de desarrollo y deploy |
-| **React** | 19.0.0 | Librería base para componentes |
-| **Expo Status Bar** | ~2.2.3 | Manejo de la barra de estado |
-| **Expo Splash Screen** | ~0.30.10 | Pantalla de carga |
+| Tecnología                             | Versión   | Propósito                            |
+| -------------------------------------- | --------- | ------------------------------------ |
+| React Native                           | 0.79.5    | Framework de desarrollo móvil        |
+| Expo                                   | \~53.0.20 | Plataforma de desarrollo y deploy    |
+| React                                  | 19.0.0    | Librería base para componentes       |
+| Expo Status Bar                        | \~2.2.3   | Manejo de la barra de estado         |
+| Expo Splash Screen                     | \~0.30.10 | Pantalla de carga                    |
+| @react-navigation/native-stack         | ^7.3.25   | Navegación con stack nativo          |
+| @react-navigation/native               | ^7.1.17   | Navegación base                      |
+| @react-navigation/bottom-tabs          | ^7.4.6    | Navegación por pestañas inferiores   |
+| @react-native-community/datetimepicker | 8.4.1     | Selector de fecha y hora             |
+| @react-native-community/slider         | ^4.5.7    | Slider (verifica si lo usas o no)    |
+| react-native-elements                  | ^3.4.3    | Componentes UI preconstruidos        |
+| @expo/vector-icons                     | ^14.1.0   | Íconos vectoriales para Expo         |
+| react-native-vector-icons              | ^10.3.0   | Íconos vectoriales para React Native |
+| react-native-safe-area-context         | 5.4.0     | Manejo de safe areas en dispositivos |
+| react-native-screens                   | \~4.11.1  | Mejoras en la gestión de pantallas   |
 
 ### 📦 Dependencias Principales
 ```json
@@ -71,12 +80,20 @@ La aplicación móvil de **Blue Fruit Nutrición** es una extensión de la plata
   "expo": "~53.0.20",
   "react": "19.0.0",
   "react-native": "0.79.5",
-  "@react-navigation/native-stack": "^7.3.24",
-  "@react-native-community/datetimepicker": "^8.4.3",
-  "@react-native-community/slider": "^4.5.7",
+  "@react-navigation/native-stack": "^7.3.25",
+  "@react-navigation/native": "^7.1.17",
+  "@react-navigation/bottom-tabs": "^7.4.6",
+  "@react-native-community/datetimepicker": "8.4.1",
+  "@react-native-community/slider": "^4.5.7",  // Esta no está en package-lock.json, confirmar si la usas
   "expo-status-bar": "~2.2.3",
-  "expo-splash-screen": "~0.30.10"
+  "expo-splash-screen": "~0.30.10",
+  "@expo/vector-icons": "^14.1.0",
+  "react-native-elements": "^3.4.3",
+  "react-native-safe-area-context": "5.4.0",
+  "react-native-screens": "~4.11.1",
+  "react-native-vector-icons": "^10.3.0"
 }
+
 ```
 
 ## 🗂️ Estructura del Proyecto
