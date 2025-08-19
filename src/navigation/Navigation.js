@@ -10,6 +10,7 @@ import IMCScreen from '../screens/IMCscreen';
 import DashboardScreen from '../screens/DashboardScreen'; // Si tienes pantalla de dashboard
 import NewPasswordScreen from '../screens/NewPasswordScreen'; // Si tienes pantalla de nueva contraseña
 import PasswordRecovery from '../screens/PasswordRecovery';
+import HomeScreen from '../screens/HomeScreen.js';
 
 
 const Stack = createNativeStackNavigator();
@@ -22,6 +23,8 @@ const AppNavigator = () => {
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
         <Stack.Screen name="Login" component={LoginScreen} /> 
+                <Stack.Screen name="HomeScreen" component={HomeScreen} />
+
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecovery} />
         <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
