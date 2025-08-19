@@ -11,6 +11,7 @@ import IMCScreen from '../screens/IMCscreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import NewPasswordScreen from '../screens/NewPasswordScreen';
 import PasswordRecovery from '../screens/PasswordRecovery';
+import HomeScreen from '../screens/HomeScreen.js';
 
 // Nuevas pantallas de productos
 import ProductsList from '../screens/Productos.js';
@@ -29,6 +30,8 @@ const AppNavigator = () => {
           <Stack.Screen name="prueba" component={TabNavigator} />
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
         <Stack.Screen name="Login" component={LoginScreen} /> 
+                <Stack.Screen name="HomeScreen" component={HomeScreen} />
+
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecovery} />
         <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
