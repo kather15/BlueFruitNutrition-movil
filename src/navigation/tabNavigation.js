@@ -6,7 +6,7 @@ import { View, Platform } from 'react-native';
 
 // Importa tus pantallas reales
 import Productos from '../screens/Productos';
-import Home from '../screens/DashboardScreen';
+import Home from '../screens/HomeScreen';
 import IMC from '../screens/IMCscreen';
 
 const Tab = createBottomTabNavigator();

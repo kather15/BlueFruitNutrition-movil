@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { Slider } from 'react-native-elements';
 
 export default function App() {
   const [peso, setPeso] = useState('');
@@ -73,16 +73,18 @@ export default function App() {
 
         <Text style={styles.label}>Clasificación del IMC</Text>
         <Slider
-          style={{ width: '100%', height: 40 }}
-          value={clasificacion}
-          minimumValue={0}
-          maximumValue={1}
-          step={0.33}
-          minimumTrackTintColor="#001F54"
-          maximumTrackTintColor="#ccc"
-          thumbTintColor="#001F54"
-          disabled
-        />
+  style={{ width: '100%', height: 40 }}
+  value={clasificacion}
+  minimumValue={0}
+  maximumValue={1}
+  step={0.33}
+  minimumTrackTintColor="#001F54"
+  maximumTrackTintColor="#ccc"
+  thumbStyle={{ backgroundColor: '#001F54' }}
+  disabled
+/>
+
+
         <View style={styles.sliderLabels}>
           <Text>Bajo peso</Text>
           <Text>Normal</Text>
