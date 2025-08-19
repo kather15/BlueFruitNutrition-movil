@@ -67,7 +67,6 @@ La aplicación móvil de **Blue Fruit Nutrición** es una extensión de la plata
 | @react-navigation/native               | ^7.1.17   | Navegación base                      |
 | @react-navigation/bottom-tabs          | ^7.4.6    | Navegación por pestañas inferiores   |
 | @react-native-community/datetimepicker | 8.4.1     | Selector de fecha y hora             |
-| @react-native-community/slider         | ^4.5.7    | Slider (verifica si lo usas o no)    |
 | react-native-elements                  | ^3.4.3    | Componentes UI preconstruidos        |
 | @expo/vector-icons                     | ^14.1.0   | Íconos vectoriales para Expo         |
 | react-native-vector-icons              | ^10.3.0   | Íconos vectoriales para React Native |
@@ -84,7 +83,6 @@ La aplicación móvil de **Blue Fruit Nutrición** es una extensión de la plata
   "@react-navigation/native": "^7.1.17",
   "@react-navigation/bottom-tabs": "^7.4.6",
   "@react-native-community/datetimepicker": "8.4.1",
-  "@react-native-community/slider": "^4.5.7",  // Esta no está en package-lock.json, confirmar si la usas
   "expo-status-bar": "~2.2.3",
   "expo-splash-screen": "~0.30.10",
   "@expo/vector-icons": "^14.1.0",
