@@ -49,11 +49,12 @@ const LoginScreen = ({ navigation }) => {
 
         Alert.alert('Éxito', 'Login exitoso');
 
-        // Navega a HomeScreen y pasa los datos del usuario
-        navigation.replace('HomeScreen', {
-          userId: data.id,
-          userName: data.name,
-        });
+navigation.replace('HomeScreen', {
+  userId: data.user.id,
+  userName: data.user.name,
+});
+
+
 
       } else {
         Alert.alert('Error', data.message || 'Credenciales incorrectas');

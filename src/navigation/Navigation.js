@@ -23,13 +23,16 @@ const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="prueba" screenOptions={{ headerShown: false }}>
+
+       {/* Pantallas de inicio */}
+      <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false }}>
+        
         {/* Pantallas de usuario */}
         <Stack.Screen name="IMCScreen" component={IMCScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
           <Stack.Screen name="prueba" component={TabNavigator} />
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} /> 
+        <Stack.Screen name="LoginScreen" component={LoginScreen} /> 
                 <Stack.Screen name="HomeScreen" component={HomeScreen} />
 
         <Stack.Screen name="Dashboard" component={DashboardScreen} />

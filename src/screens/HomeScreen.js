@@ -15,20 +15,24 @@ const HomeScreen = ({ navigation, route }) => {
   const [greeting, setGreeting] = useState('¡Buenos días!');
 
 useEffect(() => {
-  console.log('Params recibidos:', route.params);
+  console.log('Params recibidos:', route.params); // Verifica qué datos se pasan
 
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour > 12) setGreeting('¡Buenos días!');
-  else if (hour >= 12 && hour < 20) setGreeting('¡Buenas tardes!');
-  else setGreeting('¡Buenas noches!');
+  const { userName, userId } = route.params || {}; // Desestructuración con valores predeterminados
+  console.log('UserName recibido:', userName); // Verifica el valor del userName
 
-  if (route.params?.userName) {
-    setUserName(route.params.userName);
-  } else if (route.params?.userId) {
-    fetchUserNameFromAPI(route.params.userId);
+  if (userName) {
+    setUserName(userName); // Si se pasa userName, se establece
+  } else if (userId) {
+    fetchUserNameFromAPI(userId); // Si solo se pasa userId, obtenemos el nombre de la API
   } else {
     console.warn('No se recibió ni userName ni userId');
   }
+
+  // Saludo basado en la hora
+  const hour = new Date().getHours();
+  if (hour >= 6 && hour < 12) setGreeting('¡Buenos días!');
+  else if (hour >= 12 && hour < 20) setGreeting('¡Buenas tardes!');
+  else setGreeting('¡Buenas noches!');
 }, [route]);
 
 
