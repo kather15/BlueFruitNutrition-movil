@@ -8,6 +8,8 @@ import { View, Platform } from 'react-native';
 import Productos from '../screens/Productos';
 import Home from '../screens/HomeScreen';
 import IMC from '../screens/IMCscreen';
+import Bill from "../screens/BillScreen";
+
 
 const Tab = createBottomTabNavigator();
 

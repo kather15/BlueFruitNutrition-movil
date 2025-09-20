@@ -28,6 +28,9 @@
     "web": {
       "favicon": "./assets/logoBlueFrui.png",
       "backgroundColor": "#0C133F"
-    }
+    },
+    "plugins": [
+      "expo-mail-composer"
+    ]
   }
 }
