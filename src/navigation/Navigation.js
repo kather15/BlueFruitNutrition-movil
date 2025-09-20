@@ -12,11 +12,12 @@ import DashboardScreen from '../screens/DashboardScreen';
 import NewPasswordScreen from '../screens/NewPasswordScreen';
 import PasswordRecovery from '../screens/PasswordRecovery';
 import HomeScreen from '../screens/HomeScreen.js';
+import BillScreen from "../screens/BillScreen.js"
 
 // Nuevas pantallas de productos
 import ProductsList from '../screens/Productos.js';
 import ProductDetail from '../screens/VerProductos.js';
-import TabNavigator from '../navigation/tabNavigation.js'
+import TabNavigator from '../navigation/tabNavigation.js';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,7 @@ const AppNavigator = () => {
         <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
         <Stack.Screen name="ProductsList" component={ProductsList} options={{ title: 'Productos', headerShown: true }} />
         <Stack.Screen name="ProductDetail" component={ProductDetail} options={{ title: 'Detalle del Producto', headerShown: true }} />
+         <Stack.Screen name="Bill" component={BillScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
