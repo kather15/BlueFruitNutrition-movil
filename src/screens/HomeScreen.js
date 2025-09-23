@@ -13,8 +13,14 @@ const { width } = Dimensions.get('window');
 const HomeScreen = ({ navigation, route }) => {
   const [userName, setUserName] = useState('Usuario');
   const [greeting, setGreeting] = useState('¡Buenos días!');
+  const [dailyTip, setDailyTip] = useState(null); // recomendaciones aleatorias
+
 
 useEffect(() => {
+
+
+fetchRandomRecommendation();
+
   console.log('Params recibidos:', route.params); // Verifica qué datos se pasan
 
   const { userName, userId } = route.params || {}; // Desestructuración con valores predeterminados
@@ -58,6 +64,26 @@ useEffect(() => {
     { title: 'Peso Hoy', color: '#f59e0b', action: () => navigation.navigate('WeightLog') }
   ];
 
+
+  //recomendaciones aleatorias
+  const fetchRandomRecommendation = async () => {
+    try {
+      //cambiar el fetch
+      const response = await fetch('https://bluefruitnutrition1.onrender.com/api/recommendation');
+      const data = await response.json();
+  
+      if (Array.isArray(data) && data.length > 0) {
+        const randomIndex = Math.floor(Math.random() * data.length);
+        setDailyTip(data[randomIndex]);
+      } else {
+        console.warn('No recommendations found.');
+      }
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+    }
+  };
+  
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
@@ -92,14 +118,17 @@ useEffect(() => {
           </View>
 
           <View style={styles.tipContainer}>
-            <Text style={styles.sectionTitle}>Consejo del Día</Text>
-            <View style={styles.tipCard}>
-              <Text style={styles.tipTitle}>💡 Hidratación</Text>
-              <Text style={styles.tipText}>
-                Recuerda beber al menos 8 vasos de agua al día para mantener tu metabolismo activo y tu piel saludable.
-              </Text>
-            </View>
-          </View>
+  <Text style={styles.sectionTitle}>Consejo del Día</Text>
+  {dailyTip ? (
+    <View style={styles.tipCard}>
+      <Text style={styles.tipTitle}>💡 {dailyTip.title}</Text>
+      <Text style={styles.tipText}>{dailyTip.text}</Text>
+    </View>
+  ) : (
+    <Text style={{ color: '#6b7280' }}>Cargando consejo...</Text>
+  )}
+</View>
+
         </View>
       </View>
     </ScrollView>
