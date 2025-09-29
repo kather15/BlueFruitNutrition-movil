@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const API_URL = 'https://bluefruitnutrition1.onrender.com/api/registerCustomers';
+const API_URL = 'https://bluefruitnutrition-production.up.railway.app/api/registerCustomers';
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');

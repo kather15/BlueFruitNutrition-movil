@@ -18,6 +18,7 @@ import BillScreen from "../screens/BillScreen.js"
 import ProductsList from '../screens/Productos.js';
 import ProductDetail from '../screens/VerProductos.js';
 import TabNavigator from '../navigation/tabNavigation.js';
+import ProfileScreen from '../screens/PerfilScreen.js';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,7 @@ const AppNavigator = () => {
           <Stack.Screen name="prueba" component={TabNavigator} />
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} /> 
+        <Stack.Screen name="ProfileScreen" component={ProfileScreen} /> 
                 <Stack.Screen name="HomeScreen" component={HomeScreen} />
 
         <Stack.Screen name="Dashboard" component={DashboardScreen} />

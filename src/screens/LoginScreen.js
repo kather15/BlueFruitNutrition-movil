@@ -30,7 +30,7 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://bluefruitnutrition1.onrender.com/api/login', {
+      const response = await fetch('https://bluefruitnutrition-production.up.railway.app/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
