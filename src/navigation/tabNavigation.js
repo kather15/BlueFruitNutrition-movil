@@ -9,7 +9,7 @@ import Productos from '../screens/Productos';
 import Home from '../screens/HomeScreen';
 import IMC from '../screens/IMCscreen';
 import Bill from "../screens/BillScreen";
-import checkout from "../screens/checkout";
+import Perfil from '../screens/PerfilScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -68,7 +68,8 @@ const TabNavigator = () => {
     >
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Filtros" component={IMC} />
-      <Tab.Screen name="Productos" component={checkout} />
+      <Tab.Screen name="Productos" component={Productos} />
+      <Tab.Screen name= "Perfil" component={Perfil} />
     </Tab.Navigator>
   );
 };
