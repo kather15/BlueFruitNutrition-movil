@@ -13,7 +13,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
     if (!email) return Alert.alert('Error', 'Ingrese su correo');
     setLoading(true);
     try {
-      const res = await fetch('https://bluefruitnutrition1.onrender.com/api/passwordRecovery/requestCode', {
+      const res = await fetch('https://bluefruitnutrition-production.up.railway.app/api/passwordRecovery/requestCode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -38,7 +38,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
     if (!code) return Alert.alert('Error', 'Ingrese el código');
     setLoading(true);
     try {
-      const res = await fetch('https://bluefruitnutrition1.onrender.com/api/passwordRecovery/verifyCode', {
+      const res = await fetch('https://bluefruitnutrition-production.up.railway.app/api/passwordRecovery/verifyCode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code })

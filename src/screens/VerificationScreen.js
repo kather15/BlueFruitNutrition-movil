@@ -27,6 +27,7 @@ const VerificationScreen = ({ route, navigation }) => {
     setLoading(true);
 
     try {
+
       const response = await fetch(
         'https://bluefruitnutrition-production.up.railway.app/api/registerCustomers/verifyCodeEmail',
         {
@@ -43,18 +44,8 @@ const VerificationScreen = ({ route, navigation }) => {
       setLoading(false);
 
       if (response.ok) {
-        Alert.alert('Éxito', 'Correo verificado correctamente', [
-          {
-            text: 'Aceptar',
-            onPress: () => {
-              // Redirige al login y limpia historial
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'LoginScreen' }],
-              });
-            },
-          },
-        ]);
+        Alert.alert('Éxito', 'Correo verificado correctamente');
+        navigation.navigate('LoginScreen');
       } else {
         Alert.alert('Error', data.message || 'Código incorrecto');
       }

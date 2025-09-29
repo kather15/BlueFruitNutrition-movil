@@ -16,7 +16,7 @@ const NewPasswordScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
-      const res = await fetch('https://bluefruitnutrition1.onrender.com/api/passwordRecovery/newPassword', {
+      const res = await fetch('https://bluefruitnutrition-production.up.railway.app/api/passwordRecovery/newPassword', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newPassword: password })

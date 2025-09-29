@@ -13,34 +13,31 @@ const { width } = Dimensions.get('window');
 const HomeScreen = ({ navigation, route }) => {
   const [userName, setUserName] = useState('Usuario');
   const [greeting, setGreeting] = useState('¡Buenos días!');
-  const [dailyTip, setDailyTip] = useState(null); // recomendaciones aleatorias
+  const [dailyTip, setDailyTip] = useState(null);
 
+  useEffect(() => {
+    fetchRandomRecommendation();
 
-useEffect(() => {
+    console.log('Params recibidos en Home:', route?.params);
 
+    const { userName, userId } = route?.params || {};
+    console.log('UserName recibido:', userName);
+    console.log('UserId recibido:', userId);
 
-fetchRandomRecommendation();
+    if (userName) {
+      setUserName(userName);
+    } else if (userId) {
+      fetchUserNameFromAPI(userId);
+    } else {
+      console.warn('No se recibió ni userName ni userId');
+    }
 
-  console.log('Params recibidos:', route.params); // Verifica qué datos se pasan
-
-  const { userName, userId } = route.params || {}; // Desestructuración con valores predeterminados
-  console.log('UserName recibido:', userName); // Verifica el valor del userName
-
-  if (userName) {
-    setUserName(userName); // Si se pasa userName, se establece
-  } else if (userId) {
-    fetchUserNameFromAPI(userId); // Si solo se pasa userId, obtenemos el nombre de la API
-  } else {
-    console.warn('No se recibió ni userName ni userId');
-  }
-
-  // Saludo basado en la hora
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12) setGreeting('¡Buenos días!');
-  else if (hour >= 12 && hour < 20) setGreeting('¡Buenas tardes!');
-  else setGreeting('¡Buenas noches!');
-}, [route]);
-
+    // Saludo basado en la hora
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 12) setGreeting('¡Buenos días!');
+    else if (hour >= 12 && hour < 20) setGreeting('¡Buenas tardes!');
+    else setGreeting('¡Buenas noches!');
+  }, [route]);
 
   const fetchUserNameFromAPI = async (userId) => {
     try {
@@ -53,25 +50,28 @@ fetchRandomRecommendation();
     }
   };
 
+  // ✅ Aquí pasamos el userId a ProfileScreen
   const menuOptions = [
-    { title: 'Mi Perfil', subtitle: 'Información personal', action: () => navigation.navigate('Profile') },
-    { title: 'Calcular masa corporal', subtitle: 'Ver mi plan personalizado', action: () => navigation.navigate('IMCScreen') },
-
+    {
+      title: 'Mi Perfil',
+      subtitle: 'Información personal',
+      action: () =>
+        navigation.navigate('ProfileScreen', {
+          userId: route?.params?.userId, // 👈 IMPORTANTE
+        }),
+    },
+    {
+      title: 'Calcular masa corporal',
+      subtitle: 'Ver mi plan personalizado',
+      action: () => navigation.navigate('IMCScreen'),
+    },
   ];
 
-  const quickActions = [
-    { title: 'Registrar Comida', color: '#10b981', action: () => navigation.navigate('FoodLog') },
-    { title: 'Peso Hoy', color: '#f59e0b', action: () => navigation.navigate('WeightLog') }
-  ];
-
-
-  //recomendaciones aleatorias
   const fetchRandomRecommendation = async () => {
     try {
-      //cambiar el fetch
-      const response = await fetch('https://bluefruitnutrition1.onrender.com/api/recommendation');
+      const response = await fetch('https://bluefruitnutrition-production.up.railway.app/api/recommendation');
       const data = await response.json();
-  
+
       if (Array.isArray(data) && data.length > 0) {
         const randomIndex = Math.floor(Math.random() * data.length);
         setDailyTip(data[randomIndex]);
@@ -82,7 +82,6 @@ fetchRandomRecommendation();
       console.error('Error fetching recommendations:', error);
     }
   };
-  
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -96,8 +95,6 @@ fetchRandomRecommendation();
 
       <View style={styles.mainContainer}>
         <View style={styles.content}>
-
-
           <View style={styles.menuContainer}>
             <Text style={styles.sectionTitle}>Menú Principal</Text>
             {menuOptions.map((option, index) => (
@@ -118,17 +115,16 @@ fetchRandomRecommendation();
           </View>
 
           <View style={styles.tipContainer}>
-  <Text style={styles.sectionTitle}>Consejo del Día</Text>
-  {dailyTip ? (
-    <View style={styles.tipCard}>
-      <Text style={styles.tipTitle}>💡 {dailyTip.title}</Text>
-      <Text style={styles.tipText}>{dailyTip.text}</Text>
-    </View>
-  ) : (
-    <Text style={{ color: '#6b7280' }}>Cargando consejo...</Text>
-  )}
-</View>
-
+            <Text style={styles.sectionTitle}>Consejo del Día</Text>
+            {dailyTip ? (
+              <View style={styles.tipCard}>
+                <Text style={styles.tipTitle}>💡 {dailyTip.title}</Text>
+                <Text style={styles.tipText}>{dailyTip.text}</Text>
+              </View>
+            ) : (
+              <Text style={{ color: '#6b7280' }}>Cargando consejo...</Text>
+            )}
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -153,16 +149,6 @@ const styles = StyleSheet.create({
     minHeight: '100%',
   },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#1f2937', marginBottom: 15 },
-  quickActionsContainer: { marginBottom: 30 },
-  quickActionsRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 15 },
-  quickActionCard: {
-    flex: 1,
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  quickActionText: { color: '#ffffff', fontSize: 14, fontWeight: '600', textAlign: 'center' },
   menuContainer: { marginBottom: 30 },
   menuCard: {
     backgroundColor: '#f9fafb',
