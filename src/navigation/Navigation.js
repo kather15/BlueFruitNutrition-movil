@@ -12,7 +12,8 @@ import DashboardScreen from '../screens/DashboardScreen';
 import NewPasswordScreen from '../screens/NewPasswordScreen';
 import PasswordRecovery from '../screens/PasswordRecovery';
 import HomeScreen from '../screens/HomeScreen.js';
-import BillScreen from "../screens/BillScreen.js"
+import BillScreen from "../screens/BillScreen.js";
+import checkout from "../screens/checkout.js";
 
 // Nuevas pantallas de productos
 import ProductsList from '../screens/Productos.js';
@@ -33,7 +34,7 @@ const AppNavigator = () => {
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
           <Stack.Screen name="prueba" component={TabNavigator} />
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
-        <Stack.Screen name="LoginScreen" component={LoginScreen} /> 
+        <Stack.Screen name="LoginScreen" component={checkout} /> 
                 <Stack.Screen name="HomeScreen" component={HomeScreen} />
 
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
