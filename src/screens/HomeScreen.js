@@ -44,7 +44,7 @@ fetchRandomRecommendation();
 
   const fetchUserNameFromAPI = async (userId) => {
     try {
-      const response = await fetch(`https://bluefruitnutrition1.onrender.com/api/customers/${userId}`);
+      const response = await fetch(`https://bluefruitnutrition-production.up.railway.app/api/customers/${userId}`);
       const data = await response.json();
       setUserName(data?.name || 'Usuario');
     } catch (error) {

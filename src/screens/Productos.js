@@ -12,7 +12,7 @@ const ProductsList = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://10.0.2.2:4000/api/products')
+    fetch('http://bluefruitnutrition-production.up.railway.app/api/products')
       .then(res => res.json())
       .then(data => {
         console.log('Productos recibidos:', data);
