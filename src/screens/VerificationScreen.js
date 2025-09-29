@@ -42,7 +42,7 @@ const VerificationScreen = ({ route, navigation }) => {
 
       if (response.ok) {
         Alert.alert('Éxito', 'Correo verificado correctamente');
-        navigation.navigate('Login');
+        navigation.navigate('LoginScreen');
       } else {
         Alert.alert('Error', data.message || 'Código incorrecto');
       }

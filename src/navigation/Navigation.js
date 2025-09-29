@@ -13,6 +13,7 @@ import NewPasswordScreen from '../screens/NewPasswordScreen';
 import PasswordRecovery from '../screens/PasswordRecovery';
 import HomeScreen from '../screens/HomeScreen.js';
 import BillScreen from "../screens/BillScreen.js"
+import PaymentScreen from '../screens/PaymentScreen.js';
 
 // Nuevas pantallas de productos
 import ProductsList from '../screens/Productos.js';
@@ -27,7 +28,7 @@ const AppNavigator = () => {
     <NavigationContainer>
 
        {/* Pantallas de inicio */}
-      <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="PaymentScreen" screenOptions={{ headerShown: false }}>
         
         {/* Pantallas de usuario */}
         <Stack.Screen name="IMCScreen" component={IMCScreen} />
@@ -36,7 +37,8 @@ const AppNavigator = () => {
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} /> 
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} /> 
-                <Stack.Screen name="HomeScreen" component={HomeScreen} />
+        <Stack.Screen name="HomeScreen" component={HomeScreen} /> 
+        <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
 
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecovery} />
