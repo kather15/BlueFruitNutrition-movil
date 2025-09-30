@@ -1,7 +1,7 @@
 // navigation/tabNavigation.js
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { View, Platform } from 'react-native';
 
 import Productos from '../screens/Productos';
@@ -32,8 +32,8 @@ const TabNavigator = () => {
         },
         tabBarActiveTintColor: '#fff',
         tabBarInactiveTintColor: '#fff',
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+        tabBarIcon: ({ focused, color }) => {
+          let iconName = '';
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';

@@ -50,7 +50,7 @@ const LoginScreen = ({ navigation }) => {
 
         Alert.alert('Éxito', 'Login exitoso');
 
-navigation.replace('HomeScreen', {
+navigation.replace('Main', {
   userId: data.user.id,
   userName: data.user.name,
 });
