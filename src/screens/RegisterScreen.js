@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const API_URL = 'https://bluefruitnutrition-production.up.railway.app/api/registerCustomers';
+import { API_URL } from '../config.js';
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -42,7 +42,8 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await fetch(API_URL, {
+      
+      const response = await fetch(`${API_URL}/registerCustomers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

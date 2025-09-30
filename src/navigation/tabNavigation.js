@@ -1,16 +1,12 @@
-// navigation/AppNavigator.js
+// navigation/tabNavigation.js
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { View, Platform } from 'react-native';
 
-// Importa tus pantallas reales
 import Productos from '../screens/Productos';
 import Home from '../screens/HomeScreen';
 import IMC from '../screens/IMCscreen';
-import Bill from "../screens/BillScreen";
-import Perfil from '../screens/PerfilScreen';
-
 
 const Tab = createBottomTabNavigator();
 
@@ -19,7 +15,7 @@ const TabNavigator = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarShowLabel: false, // sin texto
+        tabBarShowLabel: false,
         tabBarStyle: {
           position: 'absolute',
           bottom: 20,
@@ -41,8 +37,8 @@ const TabNavigator = () => {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Filtros') {
-            iconName = focused ? 'options' : 'options-outline';
+          } else if (route.name === 'IMC') {
+            iconName = focused ? 'calculator' : 'calculator-outline';
           } else if (route.name === 'Productos') {
             iconName = focused ? 'cart' : 'cart-outline';
           }
@@ -53,8 +49,8 @@ const TabNavigator = () => {
               {focused && (
                 <View
                   style={{
-                    width: 14, // más pequeño
-                    height: 2, // más delgadito
+                    width: 14,
+                    height: 2,
                     backgroundColor: '#fff',
                     borderRadius: 1,
                     marginTop: 3,
@@ -67,9 +63,8 @@ const TabNavigator = () => {
       })}
     >
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Filtros" component={IMC} />
+      <Tab.Screen name="IMC" component={IMC} />
       <Tab.Screen name="Productos" component={Productos} />
-      <Tab.Screen name= "Perfil" component={Perfil} />
     </Tab.Navigator>
   );
 };

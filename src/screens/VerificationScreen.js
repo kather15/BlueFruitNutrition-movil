@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { API_URL } from '../config.js';
 
 const VerificationScreen = ({ route, navigation }) => {
   const { email, verificationCookie } = route.params;
@@ -28,8 +29,7 @@ const VerificationScreen = ({ route, navigation }) => {
 
     try {
 
-      const response = await fetch(
-        'https://bluefruitnutrition-production.up.railway.app/api/registerCustomers/verifyCodeEmail',
+     const response = await fetch(`${API_URL}/registerCustomers/verifyCodeEmail`, 
         {
           method: 'POST',
           headers: {

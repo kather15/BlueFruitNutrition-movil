@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform
 } from 'react-native';
+import { API_URL } from '../config.js';
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -13,7 +14,8 @@ const ForgotPasswordScreen = ({ navigation }) => {
     if (!email) return Alert.alert('Error', 'Ingrese su correo');
     setLoading(true);
     try {
-      const res = await fetch('https://bluefruitnutrition-production.up.railway.app/api/passwordRecovery/requestCode', {
+      const res = await fetch(`${API_URL}/passwordRecovery/requestCode`, {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -38,7 +40,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
     if (!code) return Alert.alert('Error', 'Ingrese el código');
     setLoading(true);
     try {
-      const res = await fetch('https://bluefruitnutrition-production.up.railway.app/api/passwordRecovery/verifyCode', {
+      const res = await fetch(`${API_URL}/passwordRecovery/verifyCode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code })

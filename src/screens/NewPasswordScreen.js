@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform
 } from 'react-native';
+import { API_URL } from '../config.js';
 
 const NewPasswordScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
@@ -16,7 +17,7 @@ const NewPasswordScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
-      const res = await fetch('https://bluefruitnutrition-production.up.railway.app/api/passwordRecovery/newPassword', {
+      const res = await fetch(`${API_URL}/passwordRecovery/newPassword`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newPassword: password })

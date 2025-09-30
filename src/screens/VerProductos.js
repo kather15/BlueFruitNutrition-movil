@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { API_URL } from '../config.js';
 
 const ProductDetail = () => {
   const route = useRoute();
@@ -13,8 +14,8 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const productUrl = `http://10.0.2.2:4000/api/products/${id}`;
-    const allProductsUrl = `http://10.0.2.2:4000/api/products`;
+    const productUrl = `${API_URL}/products/${id}`;
+const allProductsUrl = `${API_URL}/products`;
 
     // Fetch producto actual
     fetch(productUrl)

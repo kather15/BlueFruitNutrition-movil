@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { API_URL } from '../config.js';
 
 const { width } = Dimensions.get('window'); // ancho de la pantalla
 const CARD_WIDTH = (width / 2) - 25; // tamaño dinámico para que siempre se vea bien
@@ -12,7 +13,7 @@ const ProductsList = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://bluefruitnutrition-production.up.railway.app/api/products')
+   fetch(`${API_URL}/products`)
       .then(res => res.json())
       .then(data => {
         console.log('Productos recibidos:', data);

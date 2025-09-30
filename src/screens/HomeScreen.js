@@ -7,6 +7,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { API_URL } from '../config.js';
 
 const { width } = Dimensions.get('window');
 
@@ -41,7 +42,7 @@ const HomeScreen = ({ navigation, route }) => {
 
   const fetchUserNameFromAPI = async (userId) => {
     try {
-      const response = await fetch(`https://bluefruitnutrition-production.up.railway.app/api/customers/${userId}`);
+      const response = await fetch(`${API_URL}/customers/${userId}`);
       const data = await response.json();
       setUserName(data?.name || 'Usuario');
     } catch (error) {
