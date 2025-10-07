@@ -18,6 +18,7 @@ import HomeScreen from '../screens/HomeScreen.js';
 import BillScreen from "../screens/BillScreen.js"
 import ProductDetail from '../screens/VerProductos.js';
 import PerfilScreen from '../screens/PerfilScreen.js';
+import ProductsList from '../screens/Productos.js';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +37,8 @@ const AppNavigator = () => {
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
         <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
         <Stack.Screen name="ProfileScreen" component={PerfilScreen} />
+       <Stack.Screen name="Products" component={ProductsList} />
+
 
 
         {/* Pantalla Principal con Tabs */}
