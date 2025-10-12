@@ -32,12 +32,12 @@ const LoginScreen = ({ navigation }) => {
 
     try {
       const response = await fetch(`${API_URL}/login`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ email, password }),
-});
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await response.json();
       setLoading(false);
@@ -50,12 +50,11 @@ const LoginScreen = ({ navigation }) => {
 
         Alert.alert('Éxito', 'Login exitoso');
 
-navigation.replace('Main', {
-  userId: data.user.id,
-  userName: data.user.name,
-});
-
-
+        // 🔹 Navegar directamente a HomeScreen con los params
+        navigation.replace('HomeScreen', {
+          userId: data.user.id,
+          userName: data.user.name,
+        });
 
       } else {
         Alert.alert('Error', data.message || 'Credenciales incorrectas');
@@ -133,84 +132,20 @@ navigation.replace('Main', {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0C133F',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    textAlign: 'center',
-    marginBottom: 8,
-    marginTop: 60,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#b0b7c3',
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#0C133F',
-  },
-  formContainer: {
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 30,
-    paddingVertical: 40,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    flex: 1,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  input: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#374151',
-  },
-  forgotPassword: {
-    alignItems: 'flex-end',
-    marginBottom: 30,
-  },
-  forgotPasswordText: {
-    color: '#3b82f6',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  loginButton: {
-    backgroundColor: '#0C133F',
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 25,
-  },
-  loginButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  signupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  signupText: {
-    color: '#6b7280',
-    fontSize: 14,
-  },
-  signupLink: {
-    color: '#3b82f6',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: '#0C133F' },
+  title: { fontSize: 32, fontWeight: 'bold', color: '#ffffff', textAlign: 'center', marginBottom: 8, marginTop: 60 },
+  subtitle: { fontSize: 16, color: '#b0b7c3', textAlign: 'center', marginBottom: 40 },
+  mainContainer: { flex: 1, backgroundColor: '#0C133F' },
+  formContainer: { backgroundColor: '#ffffff', paddingHorizontal: 30, paddingVertical: 40, borderTopLeftRadius: 24, borderTopRightRadius: 24, flex: 1 },
+  inputContainer: { marginBottom: 20 },
+  input: { backgroundColor: '#f9fafb', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: '#374151' },
+  forgotPassword: { alignItems: 'flex-end', marginBottom: 30 },
+  forgotPasswordText: { color: '#3b82f6', fontSize: 14, fontWeight: '500' },
+  loginButton: { backgroundColor: '#0C133F', paddingVertical: 16, borderRadius: 8, alignItems: 'center', marginBottom: 25 },
+  loginButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
+  signupContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+  signupText: { color: '#6b7280', fontSize: 14 },
+  signupLink: { color: '#3b82f6', fontSize: 14, fontWeight: '600' },
 });
 
 export default LoginScreen;
