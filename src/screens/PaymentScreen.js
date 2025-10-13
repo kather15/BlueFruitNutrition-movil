@@ -1,4 +1,3 @@
-// PaymentScreen.js
 import React, { useState, useRef } from "react";
 import {
   View,
@@ -6,18 +5,18 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
+  ScrollView,
   Animated,
   Easing,
   Dimensions,
-  Platform,
+  StatusBar,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient"; // si usas Expo
-// si NO usas Expo: import LinearGradient from "react-native-linear-gradient";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get("window");
-const CARD_WIDTH = Math.min(360, width - 40);
-const CARD_HEIGHT = Math.round(CARD_WIDTH * 0.62);
+const CARD_WIDTH = Math.min(340, width - 60);
+const CARD_HEIGHT = Math.round(CARD_WIDTH * 0.60);
 
 export default function PaymentScreen({ navigation }) {
   const [cardNumber, setCardNumber] = useState("");
@@ -37,11 +36,10 @@ export default function PaymentScreen({ navigation }) {
     outputRange: ["180deg", "360deg"],
   });
 
-  // Nota: useNativeDriver: false para compatibilidad con backfaceVisibility en Android.
   const flipToBack = () => {
     Animated.timing(animatedValue, {
       toValue: 180,
-      duration: 420,
+      duration: 400,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start(() => setFlipped(true));
@@ -50,28 +48,34 @@ export default function PaymentScreen({ navigation }) {
   const flipToFront = () => {
     Animated.timing(animatedValue, {
       toValue: 0,
-      duration: 420,
+      duration: 400,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start(() => setFlipped(false));
   };
 
-  const toggleFlip = () => {
-    if (flipped) flipToFront();
-    else flipToBack();
-  };
-
-  // helpers de formato
+  // Formatear número de tarjeta
   const formatCardNumber = (digits) => {
-    if (!digits) return "1234 5678 9010 1234";
-    return digits.replace(/\s?/g, "").replace(/(\d{4})/g, "$1 ").trim();
+    if (!digits) return "1234  5678  9010\n1234";
+    const formatted = digits.replace(/\s?/g, "");
+    const line1 = formatted.slice(0, 12).replace(/(\d{4})/g, "$1  ").trim();
+    const line2 = formatted.slice(12, 16);
+    return line1 + (line2 ? "\n" + line2 : "");
   };
 
+  // Validar solo números para tarjeta
   const handleCardNumberChange = (text) => {
-    const digits = text.replace(/\D/g, "").slice(0, 16); // max 16 dígitos
+    const digits = text.replace(/\D/g, "").slice(0, 16);
     setCardNumber(digits);
   };
 
+  // Validar solo letras para titular
+  const handleCardHolderChange = (text) => {
+    const letters = text.replace(/[^a-zA-Z\s]/g, "");
+    setCardHolder(letters);
+  };
+
+  // Validar fecha de expiración
   const handleExpiryChange = (text) => {
     const digits = text.replace(/\D/g, "").slice(0, 4);
     if (digits.length >= 3) {
@@ -81,196 +85,537 @@ export default function PaymentScreen({ navigation }) {
     }
   };
 
+  // Validar CVV (solo números)
   const handleCvvChange = (text) => {
-    const digits = text.replace(/\D/g, "").slice(0, 4);
+    const digits = text.replace(/\D/g, "").slice(0, 3);
     setCvv(digits);
   };
 
+  const handlePayment = () => {
+    if (!cardNumber || cardNumber.length < 16) {
+      alert("Por favor ingresa un número de tarjeta válido (16 dígitos)");
+      return;
+    }
+    if (!cardHolder) {
+      alert("Por favor ingresa el nombre del titular");
+      return;
+    }
+    if (!expiry || expiry.length < 5) {
+      alert("Por favor ingresa la fecha de vencimiento (MM/AA)");
+      return;
+    }
+    if (!cvv || cvv.length < 3) {
+      alert("Por favor ingresa el CVV (3 dígitos)");
+      return;
+    }
+    
+    navigation.navigate('Bill');
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
+      
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Pago con tarjeta</Text>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation?.goBack?.()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#0C133F" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Método de Pago</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation?.goBack?.()}>
-        <Text style={styles.backButtonText}>← Volver</Text>
-      </TouchableOpacity>
-
-      {/* Contenedor de tarjeta - manejamos front y back con Animated */}
-      <TouchableOpacity activeOpacity={0.9} onPress={toggleFlip} style={{ alignSelf: "center" }}>
-        <View style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}>
-          {/* FRONT */}
-          <Animated.View
-            style={[
-              styles.card,
-              {
-                transform: [{ perspective: 1000 }, { rotateY: frontInterpolate }],
-              },
-            ]}
-          >
-            <View style={styles.cardTopRow}>
-              <View style={styles.logoPlaceholder} />
-              <View style={styles.chip} />
-            </View>
-
-            <Text style={styles.cardNumberText}>
-              {formatCardNumber(cardNumber) /* muestra con espacios */}
-            </Text>
-
-            <View style={styles.cardFooter}>
-              <View>
-                <Text style={styles.smallLabel}>TITULAR</Text>
-                <Text style={styles.footerText}>{cardHolder || "Nombre Apellido"}</Text>
-              </View>
-              <View>
-                <Text style={styles.smallLabel}>VENCIMIENTO</Text>
-                <Text style={styles.footerText}>{expiry || "MM/AA"}</Text>
-              </View>
-            </View>
-          </Animated.View>
-
-          {/* BACK */}
-          <Animated.View
-            style={[
-              styles.card,
-              styles.cardBack,
-              {
-                position: "absolute",
-                top: 0,
-                left: 0,
-                transform: [{ perspective: 1000 }, { rotateY: backInterpolate }],
-              },
-            ]}
-          >
-            <View style={styles.blackStrip} />
-            <View style={styles.signatureRow}>
-              <View style={styles.signatureBox}>
-                <Text style={styles.signatureText}>{cardHolder ? cardHolder.toUpperCase() : "NOMBRE APELLIDO"}</Text>
-              </View>
-              <View style={styles.cvvBox}>
-                <Text style={styles.cvvLabel}>CVV</Text>
-                <Text style={styles.cvvText}>{cvv || "•••"}</Text>
-              </View>
-            </View>
-            <View style={styles.backFooter}>
-              <Text style={styles.backFooterText}>Banco | Blue Frut</Text>
-            </View>
-          </Animated.View>
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Instrucción */}
+        <View style={styles.instructionCard}>
+          <Ionicons name="shield-checkmark" size={24} color="#10b981" />
+          <Text style={styles.instructionText}>
+            Pago seguro y encriptado
+          </Text>
         </View>
-      </TouchableOpacity>
 
-      {/* Formulario */}
-      <View style={styles.form}>
-        <Text style={styles.inputLabel}>Número de Tarjeta</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="1234 5678 9010 1234"
-          keyboardType="numeric"
-          value={formatCardNumber(cardNumber)}
-          onChangeText={handleCardNumberChange}
-          maxLength={19} // incluye espacios
-        />
+        {/* Tarjeta Minimalista */}
+        <TouchableOpacity 
+          activeOpacity={0.9} 
+          onPress={() => {}} 
+          style={styles.cardContainer}
+        >
+          <View style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}>
+            {/* FRONT */}
+            <Animated.View
+              style={[
+                styles.card,
+                {
+                  transform: [{ perspective: 1000 }, { rotateY: frontInterpolate }],
+                },
+              ]}
+            >
+              <View style={styles.cardWhite}>
+                <View style={styles.cardContent}>
+                  {/* Chip */}
+                  <View style={styles.chipContainer}>
+                    <View style={styles.chip}>
+                      <View style={styles.chipInner} />
+                    </View>
+                  </View>
 
-        <View style={styles.row}>
-          <View style={{ flex: 1, marginRight: 10 }}>
-            <Text style={styles.inputLabel}>Titular</Text>
+                  {/* Número de Tarjeta */}
+                  <Text style={styles.cardNumberText}>
+                    {formatCardNumber(cardNumber)}
+                  </Text>
+
+                  {/* Footer con titular y vencimiento */}
+                  <View style={styles.cardFooter}>
+                    <View style={styles.cardFooterLeft}>
+                      <Text style={styles.smallLabel}>TITULAR</Text>
+                      <Text style={styles.footerText} numberOfLines={1}>
+                        {cardHolder || "Nombre Apellido"}
+                      </Text>
+                    </View>
+                    <View style={styles.cardFooterRight}>
+                      <Text style={styles.smallLabel}>VENCIMIENTO</Text>
+                      <Text style={styles.footerText}>{expiry || "MM/AA"}</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </Animated.View>
+
+            {/* BACK */}
+            <Animated.View
+              style={[
+                styles.card,
+                {
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  transform: [{ perspective: 1000 }, { rotateY: backInterpolate }],
+                },
+              ]}
+            >
+              <View style={styles.cardBack}>
+                <View style={styles.blackStrip} />
+                
+                <View style={styles.backContent}>
+                  <View style={styles.signatureSection}>
+                    <Text style={styles.backLabel}>Titular</Text>
+                    <View style={styles.signatureBox}>
+                      <Text style={styles.signatureText}>
+                        {cardHolder || "Ejemplo"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.cvvSection}>
+                    <Text style={styles.backLabel}>Código</Text>
+                    <View style={styles.cvvBox}>
+                      <Text style={styles.cvvTextBack}>{cvv || "•••"}</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </Animated.View>
+          </View>
+        </TouchableOpacity>
+
+        {/* Formulario */}
+        <View style={styles.formContainer}>
+          <Text style={styles.sectionTitle}>Datos de la Tarjeta</Text>
+
+          {/* Número de Tarjeta */}
+          <View style={styles.inputGroup}>
+            <View style={styles.labelRow}>
+              <Ionicons name="card-outline" size={18} color="#0C133F" />
+              <Text style={styles.inputLabel}>Número de Tarjeta</Text>
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="1234 5678 9012 3456"
+              placeholderTextColor="#9ca3af"
+              keyboardType="numeric"
+              value={cardNumber.replace(/(\d{4})/g, '$1 ').trim()}
+              onChangeText={handleCardNumberChange}
+              maxLength={19}
+            />
+            <Text style={styles.helperText}>
+              {cardNumber.length}/16 dígitos
+            </Text>
+          </View>
+
+          {/* Titular */}
+          <View style={styles.inputGroup}>
+            <View style={styles.labelRow}>
+              <Ionicons name="person-outline" size={18} color="#0C133F" />
+              <Text style={styles.inputLabel}>Nombre del Titular</Text>
+            </View>
             <TextInput
               style={styles.input}
               placeholder="Nombre Apellido"
+              placeholderTextColor="#9ca3af"
               value={cardHolder}
-              onChangeText={setCardHolder}
+              onChangeText={handleCardHolderChange}
             />
+            <Text style={styles.helperText}>
+              Como aparece en la tarjeta
+            </Text>
           </View>
 
-          <View style={{ width: 110 }}>
-            <Text style={styles.inputLabel}>Vencimiento (MM/AA)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="MM/AA"
-              value={expiry}
-              onChangeText={handleExpiryChange}
-              keyboardType="numeric"
-              maxLength={5}
-            />
+          {/* Expiry y CVV en fila */}
+          <View style={styles.row}>
+            <View style={[styles.inputGroup, { flex: 1, marginRight: 10 }]}>
+              <View style={styles.labelRow}>
+                <Ionicons name="calendar-outline" size={18} color="#0C133F" />
+                <Text style={styles.inputLabel}>Vencimiento</Text>
+              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="MM/AA"
+                placeholderTextColor="#9ca3af"
+                value={expiry}
+                onChangeText={handleExpiryChange}
+                keyboardType="numeric"
+                maxLength={5}
+              />
+            </View>
+
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <View style={styles.labelRow}>
+                <Ionicons name="lock-closed-outline" size={18} color="#0C133F" />
+                <Text style={styles.inputLabel}>CVV</Text>
+                <TouchableOpacity onPress={flipToBack}>
+                  <Ionicons name="help-circle-outline" size={16} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="123"
+                placeholderTextColor="#9ca3af"
+                keyboardType="numeric"
+                value={cvv}
+                onChangeText={handleCvvChange}
+                maxLength={3}
+                onFocus={flipToBack}
+                onBlur={flipToFront}
+                secureTextEntry
+              />
+            </View>
           </View>
-        </View>
 
-        <View>
-          <Text style={styles.inputLabel}>Código de seguridad (CVV)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="123"
-            keyboardType="numeric"
-            value={cvv}
-            onChangeText={handleCvvChange}
-            maxLength={3}
-            onFocus={flipToBack} // al focusear se gira
-            onBlur={flipToFront} // al salir vuelve
-            secureTextEntry={Platform.OS === "ios" ? false : false} // mostramos los números para que se vea en la tarjeta, opcional: true para ocultarlo
-          />
-          <Text style={styles.hint}>Al enfocarlo se muestra el reverso de la tarjeta.</Text>
-        </View>
+          {/* Info de seguridad */}
+          <View style={styles.securityCard}>
+            <Ionicons name="lock-closed" size={20} color="#10b981" />
+            <Text style={styles.securityCardText}>
+              Tu información está protegida con encriptación de nivel bancario
+            </Text>
+          </View>
 
-        <TouchableOpacity style={styles.nextWrap} onPress={() => alert("Procesando pago...")}>
-          <LinearGradient colors={["#0d1640", "#000"]} style={styles.nextButton}>
-            <Text style={styles.nextButtonText}>Siguiente</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+          {/* Botón de Pagar */}
+          <TouchableOpacity 
+            style={styles.payButton}
+            onPress={handlePayment}
+          >
+            <View style={styles.payButtonGradient}>
+              <Ionicons name="shield-checkmark" size={24} color="#fff" />
+              <Text style={styles.payButtonText}>Confirmar Pago</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingHorizontal: 20, paddingTop: 8 },
-  header: { alignItems: "center", paddingVertical: 10 },
-  headerText: { fontSize: 18, fontWeight: "700", color: "#0d0d25" },
-  backButton: { marginBottom: 12 },
-  backButtonText: { color: "#0d0d25", borderWidth: 1, borderColor: "#0d0d25", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#f8f9fa" 
+  },
 
+  // Header
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#0C133F',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#274175ff',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#f3f5f8ff',
+  },
+
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+
+  // Instruction Card
+  instructionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0fdf4',
+    marginHorizontal: 20,
+    marginTop: 20,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  instructionText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 14,
+    color: '#15803d',
+    fontWeight: '600',
+  },
+
+  // Card Container
+  cardContainer: {
+    alignSelf: "center",
+    marginVertical: 30,
+  },
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    borderRadius: 14,
-    padding: 18,
-    backgroundColor: "#0d2b64",
-    justifyContent: "space-between",
-    elevation: 6,
+    borderRadius: 16,
+    elevation: 8,
     shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
     backfaceVisibility: "hidden",
+    overflow: 'hidden',
   },
+
+  // Card Front - Minimalista Blanca
+  cardWhite: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  cardContent: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'space-between',
+  },
+  chipContainer: {
+    width: 50,
+    height: 40,
+  },
+  chip: { 
+    width: 50, 
+    height: 40, 
+    borderRadius: 8,
+    backgroundColor: '#e5e7eb',
+    padding: 3,
+  },
+  chipInner: {
+    flex: 1,
+    borderRadius: 6,
+    backgroundColor: '#f3f4f6',
+  },
+  cardNumberText: { 
+    color: "#1f2937", 
+    fontSize: 22, 
+    letterSpacing: 2, 
+    fontWeight: "500",
+    lineHeight: 32,
+    marginTop: 10,
+  },
+  cardFooter: { 
+    flexDirection: "row", 
+    justifyContent: "space-between",
+    alignItems: 'flex-end',
+  },
+  cardFooterLeft: {
+    flex: 1,
+  },
+  cardFooterRight: {
+    alignItems: 'flex-end',
+  },
+  smallLabel: { 
+    color: "#9ca3af", 
+    fontSize: 9,
+    marginBottom: 4,
+    letterSpacing: 0.5,
+    fontWeight: '600',
+  },
+  footerText: { 
+    color: "#1f2937", 
+    fontSize: 13, 
+    fontWeight: "600",
+  },
+
+  // Card Back - Minimalista
   cardBack: {
-    backgroundColor: "#0b213d",
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
-  cardTopRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  logoPlaceholder: { width: 70, height: 28, borderRadius: 6, backgroundColor: "#0b1830" },
-  chip: { width: 48, height: 36, borderRadius: 6, backgroundColor: "#d9d9d9" },
+  blackStrip: { 
+    height: 50, 
+    backgroundColor: "#1f2937", 
+    marginTop: 25,
+  },
+  backContent: {
+    flex: 1,
+    padding: 24,
+    paddingTop: 20,
+  },
+  signatureSection: {
+    marginBottom: 16,
+  },
+  backLabel: {
+    fontSize: 10,
+    color: '#6b7280',
+    marginBottom: 6,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  signatureBox: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 6,
+    padding: 10,
+    height: 40,
+    justifyContent: 'center',
+  },
+  signatureText: {
+    fontSize: 13,
+    color: '#1f2937',
+    fontWeight: '500',
+  },
+  cvvSection: {
+    marginTop: 8,
+  },
+  cvvBox: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 6,
+    padding: 10,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cvvTextBack: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2937',
+    letterSpacing: 3,
+  },
 
-  cardNumberText: { color: "#fff", fontSize: 20, letterSpacing: 2, marginTop: 8, fontWeight: "600" },
-  cardFooter: { flexDirection: "row", justifyContent: "space-between" },
-  smallLabel: { color: "#bcd0ff", fontSize: 10 },
-  footerText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  // Form
+  formContainer: {
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 20,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  inputLabel: { 
+    fontSize: 14, 
+    fontWeight: "600",
+    color: "#374151",
+    marginLeft: 6,
+    flex: 1,
+  },
+  input: { 
+    backgroundColor: '#fff',
+    borderWidth: 1, 
+    borderColor: "#e5e7eb", 
+    borderRadius: 12, 
+    padding: 14, 
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  row: { 
+    flexDirection: "row", 
+    alignItems: "flex-start" 
+  },
 
-  blackStrip: { height: 44, backgroundColor: "#000", marginTop: 12, borderRadius: 4 },
-  signatureRow: { flexDirection: "row", marginTop: 12, alignItems: "center", paddingHorizontal: 6 },
-  signatureBox: { flex: 1, height: 44, backgroundColor: "#fff", justifyContent: "center", paddingHorizontal: 8, borderRadius: 4 },
-  signatureText: { fontSize: 12, color: "#333" },
-  cvvBox: { width: 80, height: 44, marginLeft: 10, backgroundColor: "#fff", borderRadius: 4, justifyContent: "center", alignItems: "center" },
-  cvvLabel: { fontSize: 10, color: "#888" },
-  cvvText: { fontSize: 16, fontWeight: "700", color: "#000" },
-  backFooter: { marginTop: 12 },
-  backFooterText: { color: "#bcd0ff", fontSize: 12 },
+  // Security Card
+  securityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0fdf4',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  securityCardText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#166534',
+    marginLeft: 10,
+  },
 
-  form: { marginTop: 20 },
-  inputLabel: { fontSize: 13, marginBottom: 6, color: "#0d0d25", fontWeight: "600" },
-  input: { borderWidth: 1, borderColor: "#e6e6e6", borderRadius: 8, padding: 10, marginBottom: 12, backgroundColor: "#fff" },
-  row: { flexDirection: "row", alignItems: "center" },
-  hint: { fontSize: 12, color: "#777", marginBottom: 8 },
-
-  nextWrap: { marginTop: 8 },
-  nextButton: { borderRadius: 10, paddingVertical: 12, alignItems: "center" },
-  nextButtonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  // Pay Button
+  payButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#0C133F',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+  },
+  payButtonGradient: {
+    flexDirection: 'row',
+    paddingVertical: 18,
+    alignItems: "center",
+    justifyContent: 'center',
+    backgroundColor: '#0C133F',
+    gap: 10,
+  },
+  payButtonText: { 
+    color: "#fff", 
+    fontSize: 18, 
+    fontWeight: "700",
+    marginLeft: 8,
+  },
 });

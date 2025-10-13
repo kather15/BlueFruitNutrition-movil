@@ -16,19 +16,22 @@ const HomeScreen = ({ navigation, route }) => {
   const [greeting, setGreeting] = useState('¡Buenos días!');
   const [dailyTip, setDailyTip] = useState(null);
 
+  // Obtener userId desde route.params
+  const userId = route?.params?.userId;
+
   useEffect(() => {
     fetchRandomRecommendation();
 
     console.log('Params recibidos en Home:', route?.params);
 
-    const { userName, userId } = route?.params || {};
-    console.log('UserName recibido:', userName);
-    console.log('UserId recibido:', userId);
+    const { userName: receivedUserName, userId: receivedUserId } = route?.params || {};
+    console.log('UserName recibido:', receivedUserName);
+    console.log('UserId recibido:', receivedUserId);
 
-    if (userName) {
-      setUserName(userName);
-    } else if (userId) {
-      fetchUserNameFromAPI(userId);
+    if (receivedUserName) {
+      setUserName(receivedUserName);
+    } else if (receivedUserId) {
+      fetchUserNameFromAPI(receivedUserId);
     } else {
       console.warn('No se recibió ni userName ni userId');
     }
@@ -51,20 +54,25 @@ const HomeScreen = ({ navigation, route }) => {
     }
   };
 
-  // ✅ Aquí pasamos el userId a ProfileScreen
   const menuOptions = [
     {
       title: 'Mi Perfil',
       subtitle: 'Información personal',
       action: () =>
-        navigation.navigate('ProfileScreen', {
-          userId: route?.params?.userId, // 👈 IMPORTANTE
+        navigation.navigate('Perfil', {
+          userId: userId,
         }),
     },
     {
       title: 'Calcular masa corporal',
       subtitle: 'Ver mi plan personalizado',
-      action: () => navigation.navigate('IMCScreen'),
+      action: () => navigation.navigate('IMC'),
+    },
+   
+    {
+      title: 'Tiendas Cercanas',
+      subtitle: 'Encuentra donde comprar',
+      action: () => navigation.navigate('StoresMap'),
     },
   ];
 

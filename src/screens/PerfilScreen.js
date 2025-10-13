@@ -8,8 +8,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
+import { Ionicons } from '@expo/vector-icons';
 
 const ProfileScreen = ({ route, navigation }) => {
   const userId = route?.params?.userId || null;
@@ -76,18 +77,33 @@ const ProfileScreen = ({ route, navigation }) => {
   };
 
   const handleLogout = () => {
-    // Aquí podrías limpiar AsyncStorage / Context / Redux según tu app
-    Alert.alert("Sesión cerrada", "Has cerrado sesión exitosamente");
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "LoginScreen" }], // reemplaza con tu pantalla inicial
-    });
+    Alert.alert(
+      "Cerrar Sesión",
+      "¿Estás seguro que deseas cerrar sesión?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+        {
+          text: "Sí, cerrar sesión",
+          style: "destructive",
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
+          }
+        }
+      ]
+    );
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0a1a4f" />
+        <ActivityIndicator size="large" color="#0C133F" />
+        <Text style={styles.loadingText}>Cargando perfil...</Text>
       </View>
     );
   }
@@ -95,92 +111,146 @@ const ProfileScreen = ({ route, navigation }) => {
   if (!userData) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>No se encontró el perfil.</Text>
+        <Ionicons name="person-circle-outline" size={80} color="#d1d5db" />
+        <Text style={styles.emptyText}>No se encontró el perfil</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.logoText}>Blue Fruit</Text>
-        <Text style={styles.subText}>better nutrition - better results</Text>
+      {/* Header con degradado */}
+      <View style={styles.headerGradient}>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Mi Perfil</Text>
+          <Text style={styles.headerSubtitle}>Administra tu información personal</Text>
+        </View>
       </View>
 
-      {/* Perfil */}
-      <View style={styles.perfilContainer}>
-        <Text style={styles.perfilLabel}>Perfil</Text>
-
-        <View style={styles.imageBox}>
-          <Image
-            source={{ uri: userData.image || "https://via.placeholder.com/150" }}
-            style={styles.image}
-          />
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Card de imagen de perfil */}
+        <View style={styles.profileImageCard}>
+          <View style={styles.imageContainer}>
+            
+            <TouchableOpacity style={styles.editImageButton}>
+              <Ionicons name="camera" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.userName}>{userData.name} {userData.lastName}</Text>
+          <Text style={styles.userEmail}>{userData.email}</Text>
         </View>
 
-        <TextInput
-          value={userData.name || ""}
-          placeholder="Nombre"
-          style={styles.input}
-          onChangeText={(text) => setUserData({ ...userData, name: text })}
-        />
-        <TextInput
-          value={userData.lastName || ""}
-          placeholder="Apellido"
-          style={styles.input}
-          onChangeText={(text) => setUserData({ ...userData, lastName: text })}
-        />
-        <TextInput
-          value={userData.email || ""}
-          placeholder="Correo"
-          style={styles.input}
-          onChangeText={(text) => setUserData({ ...userData, email: text })}
-        />
-        <TextInput
-          value={userData.phone || ""}
-          placeholder="Teléfono"
-          style={styles.input}
-          onChangeText={(text) => setUserData({ ...userData, phone: text })}
-        />
-        <TextInput
-          value={userData.dateBirth ? userData.dateBirth.split("T")[0] : ""}
-          placeholder="Fecha de nacimiento"
-          style={styles.input}
-          onChangeText={(text) => setUserData({ ...userData, dateBirth: text })}
-        />
+        {/* Formulario */}
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Información Personal</Text>
 
+          {/* Input Nombre */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabelRow}>
+              <Ionicons name="person" size={18} color="#0C133F" />
+              <Text style={styles.inputLabel}>Nombre</Text>
+            </View>
+            <TextInput
+              value={userData.name || ""}
+              placeholder="Tu nombre"
+              placeholderTextColor="#9ca3af"
+              style={styles.input}
+              onChangeText={(text) => setUserData({ ...userData, name: text })}
+            />
+          </View>
 
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          <Text style={styles.saveButtonText}>
-            {saving ? "Guardando..." : "Guardar Cambios"}
-          </Text>
-        </TouchableOpacity>
+          {/* Input Apellido */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabelRow}>
+              <Ionicons name="person-outline" size={18} color="#0C133F" />
+              <Text style={styles.inputLabel}>Apellido</Text>
+            </View>
+            <TextInput
+              value={userData.lastName || ""}
+              placeholder="Tu apellido"
+              placeholderTextColor="#9ca3af"
+              style={styles.input}
+              onChangeText={(text) => setUserData({ ...userData, lastName: text })}
+            />
+          </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Input Email */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabelRow}>
+              <Ionicons name="mail" size={18} color="#0C133F" />
+              <Text style={styles.inputLabel}>Correo Electrónico</Text>
+            </View>
+            <TextInput
+              value={userData.email || ""}
+              placeholder="correo@ejemplo.com"
+              placeholderTextColor="#9ca3af"
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              onChangeText={(text) => setUserData({ ...userData, email: text })}
+            />
+          </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity>
-          <Icon name="home-outline" size={28} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Icon name="list-outline" size={28} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Icon name="cart-outline" size={28} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Icon name="person-outline" size={28} color="#fff" />
-        </TouchableOpacity>
-      </View>
+          {/* Input Teléfono */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabelRow}>
+              <Ionicons name="call" size={18} color="#0C133F" />
+              <Text style={styles.inputLabel}>Teléfono</Text>
+            </View>
+            <TextInput
+              value={userData.phone || ""}
+              placeholder="2250-0000"
+              placeholderTextColor="#9ca3af"
+              style={styles.input}
+              keyboardType="phone-pad"
+              onChangeText={(text) => setUserData({ ...userData, phone: text })}
+            />
+          </View>
+
+          {/* Input Fecha de Nacimiento */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabelRow}>
+              <Ionicons name="calendar" size={18} color="#0C133F" />
+              <Text style={styles.inputLabel}>Fecha de Nacimiento</Text>
+            </View>
+            <TextInput
+              value={userData.dateBirth ? userData.dateBirth.split("T")[0] : ""}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor="#9ca3af"
+              style={styles.input}
+              onChangeText={(text) => setUserData({ ...userData, dateBirth: text })}
+            />
+          </View>
+
+          {/* Botón Guardar */}
+          <TouchableOpacity
+            style={[styles.saveButton, saving && styles.buttonDisabled]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          {/* Botón Cerrar Sesión */}
+          <TouchableOpacity 
+            style={styles.logoutButton} 
+            onPress={handleLogout}
+          >
+            <Ionicons name="log-out" size={20} color="#ef4444" style={{ marginRight: 8 }} />
+            <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -188,65 +258,173 @@ const ProfileScreen = ({ route, navigation }) => {
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f0f8ff" },
-  header: { backgroundColor: "#0a1a4f", padding: 20, alignItems: "center" },
-  logoText: { fontSize: 20, fontWeight: "bold", color: "#fff" },
-  subText: { fontSize: 12, color: "#fff" },
-  perfilContainer: { marginTop: 20, alignItems: "center", paddingHorizontal: 20 },
-  perfilLabel: {
-    alignSelf: "flex-start",
-    marginBottom: 10,
-    marginLeft: 10,
+  container: { 
+    flex: 1, 
+    backgroundColor: "#f8f9fa" 
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  emptyText: {
+    marginTop: 20,
+    fontSize: 18,
+    color: '#6b7280',
+  },
+
+  // Header
+  headerGradient: {
+    backgroundColor: '#0C133F',
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 20,
+  },
+  headerContent: {
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 6,
+  },
+  headerSubtitle: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#0a1a4f",
+    color: 'rgba(255, 255, 255, 0.8)',
   },
-  imageBox: {
-    width: 150,
-    height: 150,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-    elevation: 3,
+
+  scrollContent: {
+    paddingBottom: 120,
   },
-  image: { width: "100%", height: "100%", borderRadius: 10 },
-  input: {
-    width: "100%",
-    backgroundColor: "#eaeaea",
-    borderRadius: 10,
-    padding: 12,
-    marginVertical: 8,
+
+  // Card de Imagen de Perfil
+  profileImageCard: {
+    backgroundColor: '#fff',
+    marginTop: -20,
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 5,
   },
-  saveButton: {
-    backgroundColor: "#0a1a4f",
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 10,
-    width: "100%",
-    alignItems: "center",
+  imageContainer: {
+    position: 'relative',
+    marginBottom: 16,
   },
-  saveButtonText: { color: "#fff", fontWeight: "bold" },
-  logoutButton: {
-    backgroundColor: "#ef4444",
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 10,
-    width: "100%",
-    alignItems: "center",
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    borderColor: '#f0f9ff',
   },
-  logoutButtonText: { color: "#fff", fontWeight: "bold" },
-  footer: {
-    position: "absolute",
+  editImageButton: {
+    position: 'absolute',
     bottom: 0,
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 15,
-    backgroundColor: "#0a1a4f",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    right: 0,
+    backgroundColor: '#0C133F',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#fff',
   },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  userName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+
+  // Formulario
+  formSection: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 16,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginLeft: 6,
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    color: '#1f2937',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+
+  // Botones
+  saveButton: {
+    backgroundColor: '#0C133F',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    flexDirection: 'row',
+    shadowColor: '#0C133F',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  logoutButton: {
+    backgroundColor: '#fff',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    flexDirection: 'row',
+    borderWidth: 2,
+    borderColor: '#fee2e2',
+  },
+  logoutButtonText: {
+    color: '#ef4444',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
