@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,40 +7,58 @@ import {
   FlatList,
   StyleSheet,
   SafeAreaView,
+  Alert,
 } from "react-native";
-import { StatusBar } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
 
-const DATA = [
-  { id: "1", name: "Ener Kik", price: 4.5 },
-  { id: "2", name: "Ener Kik", price: 4.5 },
-  { id: "3", name: "Ener Kik", price: 4.5},
-];
-
 export default function CarritoScreen({ navigation }) {
-  const [items, setItems] = useState(
-    DATA.map((item) => ({ ...item, qty: 1 }))
-  );
+  const [items, setItems] = useState([]);
 
-  
+  // 🔹 Cargar carrito desde AsyncStorage al abrir pantalla
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("cart");
+        if (stored) {
+          setItems(JSON.parse(stored));
+        }
+      } catch (error) {
+        console.error("Error cargando carrito:", error);
+      }
+    };
+    loadCart();
+  }, []);
 
-  const updateQty = (id, delta) => {
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i
-      )
+  // 🔹 Actualizar cantidad
+  const updateQty = async (id, delta) => {
+    const updated = items.map((i) =>
+      i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i
     );
+    setItems(updated);
+    await AsyncStorage.setItem("cart", JSON.stringify(updated));
   };
 
-  const removeItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  // 🔹 Eliminar producto
+  const removeItem = async (id) => {
+    const filtered = items.filter((i) => i.id !== id);
+    setItems(filtered);
+    await AsyncStorage.setItem("cart", JSON.stringify(filtered));
   };
 
-  const total = items.reduce((sum, i) => sum + i.qty * i.price, 0).toFixed(2);
+  // 🔹 Calcular total
+  const total = items
+    .reduce((sum, i) => sum + i.quantity * i.price, 0)
+    .toFixed(2);
 
+  // 🔹 Renderizar cada producto
   const renderItem = ({ item }) => (
     <View style={styles.itemCard}>
-      <Image source={item.img} style={styles.img} />
+      <Image
+        source={{ uri: item.image }}
+        style={styles.img}
+        resizeMode="contain"
+      />
       <View style={styles.info}>
         <View style={styles.itemHeader}>
           <Text style={styles.name}>{item.name}</Text>
@@ -48,6 +66,7 @@ export default function CarritoScreen({ navigation }) {
             <Icon name="close-circle" size={24} color="#0B1F50" />
           </TouchableOpacity>
         </View>
+
         <View style={styles.controls}>
           <TouchableOpacity
             style={styles.qtyBtn}
@@ -56,7 +75,7 @@ export default function CarritoScreen({ navigation }) {
             <Icon name="remove-outline" size={20} color="#0B1F50" />
           </TouchableOpacity>
 
-          <Text style={styles.qty}>{item.qty}</Text>
+          <Text style={styles.qty}>{item.quantity}</Text>
 
           <TouchableOpacity
             style={styles.qtyBtn}
@@ -65,45 +84,48 @@ export default function CarritoScreen({ navigation }) {
             <Icon name="add-outline" size={20} color="#0B1F50" />
           </TouchableOpacity>
 
-          <Text style={styles.price}>${(item.price * item.qty).toFixed(2)}</Text>
-          
+          <Text style={styles.price}>
+            ${(item.price * item.quantity).toFixed(2)}
+          </Text>
         </View>
       </View>
     </View>
   );
 
   return (
-   <SafeAreaView style={styles.container}>
-  <View style={styles.header}>
-    <Text style={styles.title}>Tu Carrito</Text>
-    <View style={styles.divider} />
-  </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Tu Carrito</Text>
+        <View style={styles.divider} />
+      </View>
 
-  <FlatList
-    data={items}
-    keyExtractor={(item) => item.id}
-    renderItem={renderItem}
-    contentContainerStyle={{ paddingBottom: 20 }}
-    ListEmptyComponent={
-      <Text style={styles.emptyText}>Tu carrito está vacío</Text>
-    }
-  />
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>Tu carrito está vacío 🛒</Text>
+        }
+      />
 
-  <TouchableOpacity
-    style={styles.addMoreBtn}
-    onPress={() => navigation.navigate("Productos")}
-  >
-    <Text style={styles.addMoreText}>Agregar más productos</Text>
-  </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.addMoreBtn}
+        onPress={() => navigation.navigate("Productos")}
+      >
+        <Text style={styles.addMoreText}>Agregar más productos</Text>
+      </TouchableOpacity>
 
-  <TouchableOpacity style={styles.payBtn} disabled={items.length === 0}>
-    <Text style={styles.payText}>
-      Ir a pagar {items.length > 0 ? `  $${total}` : ""}
-    </Text>
-  </TouchableOpacity>
-</SafeAreaView>
-
-
+      <TouchableOpacity
+        style={[styles.payBtn, { opacity: items.length === 0 ? 0.5 : 1 }]}
+        disabled={items.length === 0}
+        onPress={() => Alert.alert("Total a pagar", `$${total}`)}
+      >
+        <Text style={styles.payText}>
+          Ir a pagar {items.length > 0 ? `  $${total}` : ""}
+        </Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
@@ -117,7 +139,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: 1,
     paddingTop: 10,
-    
   },
   itemCard: {
     flexDirection: "row",
@@ -169,10 +190,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 16,
     marginHorizontal: 16,
-    opacity: 1,
   },
   payText: { color: "#fff", fontSize: 20, fontWeight: "700" },
-
   addMoreBtn: {
     backgroundColor: "#f0f0f0",
     paddingVertical: 14,
@@ -185,7 +204,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 18,
   },
-
   emptyText: {
     textAlign: "center",
     marginTop: 40,

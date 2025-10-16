@@ -1,18 +1,59 @@
 import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function ProductCard() {
   const [quantity, setQuantity] = useState(1);
+
+  const product = {
+    id: 1,
+    name: "Ener Balance",
+    price: 2.5,
+    flavor: "Naranja",
+    image: "https://bluefruitnutrition.com/images/gel.png", // URL directa o tuya
+  };
 
   const increase = () => setQuantity(quantity + 1);
   const decrease = () => {
     if (quantity > 1) setQuantity(quantity - 1);
   };
 
+  // 🔹 Función para agregar producto al carrito
+  const addToCart = async () => {
+    try {
+      const existingCart = await AsyncStorage.getItem("cart");
+      const cart = existingCart ? JSON.parse(existingCart) : [];
+
+      const existingItem = cart.find((item) => item.id === product.id);
+
+      if (existingItem) {
+        // Si ya está en el carrito, solo aumenta la cantidad
+        existingItem.quantity += quantity;
+      } else {
+        // Si no está, lo agrega nuevo
+        cart.push({ ...product, quantity });
+      }
+
+      await AsyncStorage.setItem("cart", JSON.stringify(cart));
+      Alert.alert("Éxito", "Producto agregado al carrito 🛒");
+    } catch (error) {
+      console.error("Error al agregar al carrito:", error);
+      Alert.alert("Error", "No se pudo agregar al carrito");
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
-      {/* Logo */}
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.logo}>Blue Fruit</Text>
         <Text style={styles.slogan}>Better Nutrition • Better Results</Text>
@@ -21,22 +62,22 @@ export default function ProductCard() {
       {/* Card */}
       <View style={styles.card}>
         <Image
-          source={{ uri: "../assets/gel.png" }} 
+          source={{ uri: product.image }}
           style={styles.image}
           resizeMode="contain"
         />
 
-        <Text style={styles.title}>Ener Balance</Text>
-        <Text style={styles.price}>$2.50</Text>
+        <Text style={styles.title}>{product.name}</Text>
+        <Text style={styles.price}>${product.price.toFixed(2)}</Text>
 
         <Text style={styles.label}>Sabor:</Text>
-        <Text style={styles.flavor}> </Text>
+        <Text style={styles.flavor}>{product.flavor}</Text>
 
         <Text style={styles.description}>
-         Reppo es un Gel Energético de “recuperación” específica, que combina la dextrosa y Palatinose™ 
-         con aminoácidos de cadena ramificada (BCAA) y vitamina C. 
-         Está formulado para contribuir una reconstrucción de las fibras musculares post–ejercicio. 
-         De esta manera colabora a evitar el catabolismo muscular, y así mejorando el rendimiento.
+          Reppo es un Gel Energético de “recuperación” específica, que combina
+          dextrosa y Palatinose™ con aminoácidos de cadena ramificada (BCAA) y
+          vitamina C. Formulado para reconstruir las fibras musculares
+          post–ejercicio y mejorar el rendimiento.
         </Text>
 
         {/* Quantity and Button */}
@@ -51,8 +92,8 @@ export default function ProductCard() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.buyBtn}>
-            <Text style={styles.buyText}>Comprar</Text>
+          <TouchableOpacity style={styles.buyBtn} onPress={addToCart}>
+            <Text style={styles.buyText}>Agregar al carrito</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -60,6 +101,7 @@ export default function ProductCard() {
   );
 }
 
+// 🎨 Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -109,7 +151,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   flavor: {
-    fontSize: 20,
+    fontSize: 16,
     marginBottom: 10,
   },
   description: {
