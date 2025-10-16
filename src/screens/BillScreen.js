@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as MailComposer from 'expo-mail-composer';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Ionicons } from '@expo/vector-icons';
 
 const API_URL = 'https://bluefruitnutrition-production.up.railway.app/api/Bill';
@@ -30,7 +30,17 @@ export default function BillScreen({ navigation, route }) {
 
   useEffect(() => {
     cargarDatos();
+    limpiarCarrito();
   }, []);
+
+  const limpiarCarrito = async () => {
+    try {
+      await AsyncStorage.removeItem('cart');
+      console.log('✅ Carrito limpiado después de la compra');
+    } catch (error) {
+      console.error('❌ Error limpiando carrito:', error);
+    }
+  };
 
   const cargarDatos = async () => {
     try {
@@ -131,6 +141,14 @@ export default function BillScreen({ navigation, route }) {
         Alert.alert('Éxito', 'Factura descargada en: ' + fileUri);
       }
 
+      // Navegar al Home después de descargar
+      setTimeout(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main', params: { screen: 'Home' } }],
+        });
+      }, 1500);
+
     } catch (error) {
       console.error('❌ Error descargando factura:', error);
       Alert.alert('Error', 'No se pudo descargar la factura: ' + error.message);
@@ -199,32 +217,15 @@ export default function BillScreen({ navigation, route }) {
     }
   };
 
-  const handleEnviarGmailLocal = async () => {
-    // Opción alternativa: Abrir Gmail con un borrador
-    const isAvailable = await MailComposer.isAvailableAsync();
+  const volverAlHome = () => {
+    // Limpiar datos de compra y envío del AsyncStorage
+    AsyncStorage.multiRemove(['datosCompra', 'datosEnvio']);
     
-    if (isAvailable) {
-      const numeroOrden = datosCompra?.orden?.numeroOrden || 'N/A';
-      const total = datosCompra?.total?.toFixed(2) || '0.00';
-      
-      MailComposer.composeAsync({
-        recipients: [user?.email || ''],
-        subject: `Factura de Compra - Orden ${numeroOrden}`,
-        body: `
-Hola ${user?.name || 'Cliente'},
-
-Gracias por tu compra. Aquí está el resumen de tu pedido:
-
-Número de Orden: ${numeroOrden}
-Total: $${total}
-
-Saludos,
-BlueFruit Nutrition
-        `,
-      });
-    } else {
-      Alert.alert('Error', 'No se pudo abrir la aplicación de correo');
-    }
+    // Navegar al Home usando reset para limpiar el stack de navegación
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Main', params: { screen: 'Home' } }],
+    });
   };
 
   if (loading) {
@@ -248,7 +249,7 @@ BlueFruit Nutrition
         <View style={styles.header}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => navigation?.goBack?.()}
+            onPress={volverAlHome}
           >
             <Ionicons name="arrow-back" size={24} color="#0c133f" />
           </TouchableOpacity>
@@ -326,8 +327,11 @@ BlueFruit Nutrition
               <Text style={styles.cardTitle}>Datos de Envío</Text>
             </View>
             <View style={styles.divider} />
-            <Text style={styles.texto}>{datosEnvio.nombre}</Text>
+            <Text style={styles.texto}>Teléfono: {datosEnvio.telefono}</Text>
             <Text style={styles.texto}>{datosEnvio.direccionCompleta}</Text>
+            {datosEnvio.indicaciones && (
+              <Text style={styles.texto}>Indicaciones: {datosEnvio.indicaciones}</Text>
+            )}
           </View>
         )}
 
@@ -340,8 +344,8 @@ BlueFruit Nutrition
         </View>
 
         {/* Botones de acción */}
-        <View style={styles.botonesContainer}>
-          <TouchableOpacity 
+         <View style={styles.botonesContainer}>
+           {/* <TouchableOpacity 
             style={[styles.boton, styles.botonPrimario]}
             onPress={handleEnviarCorreo}
             disabled={enviandoEmail}
@@ -354,7 +358,7 @@ BlueFruit Nutrition
                 <Text style={styles.botonTexto}>Enviar al Correo</Text>
               </>
             )}
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
 
           <TouchableOpacity 
             style={[styles.boton, styles.botonSecundario]}
@@ -377,7 +381,7 @@ BlueFruit Nutrition
         {/* Botón para volver al inicio */}
         <TouchableOpacity 
           style={styles.botonHome}
-          onPress={() => navigation?.navigate('Home')}
+          onPress={volverAlHome}
         >
           <Text style={styles.botonHomeTexto}>Volver al Inicio</Text>
         </TouchableOpacity>

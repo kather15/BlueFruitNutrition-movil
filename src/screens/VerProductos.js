@@ -8,10 +8,12 @@ import {
   ActivityIndicator, 
   FlatList,
   ScrollView,
-  Dimensions 
+  Dimensions,
+  Alert 
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config.js';
 
 const { width } = Dimensions.get('window');
@@ -24,6 +26,9 @@ const ProductDetail = () => {
   const [products, setProducts] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [selectedFlavor, setSelectedFlavor] = useState(null);
+  const [flavors, setFlavors] = useState([]);
 
   useEffect(() => {
     const productUrl = `${API_URL}/products/${id}`;
@@ -31,7 +36,19 @@ const ProductDetail = () => {
 
     fetch(productUrl)
       .then(res => res.json())
-      .then(data => setProduct(data))
+      .then(data => {
+        setProduct(data);
+        
+        // Procesar sabores
+        if (data.flavor) {
+          const processedFlavors = processFlavors(data.flavor);
+          setFlavors(processedFlavors);
+          // Seleccionar el primer sabor por defecto
+          if (processedFlavors.length > 0) {
+            setSelectedFlavor(processedFlavors[0]);
+          }
+        }
+      })
       .catch(err => console.error('Error fetch product:', err));
 
     fetch(allProductsUrl)
@@ -40,6 +57,141 @@ const ProductDetail = () => {
       .catch(err => console.error('Error fetch all products:', err))
       .finally(() => setLoading(false));
   }, [id]);
+
+  // Función para procesar sabores desde diferentes formatos
+  const processFlavors = (flavorData) => {
+    console.log('🔍 Datos originales de sabor:', flavorData);
+    console.log('🔍 Tipo de dato:', typeof flavorData);
+    
+    if (!flavorData) return [];
+
+    let flavorArray = [];
+
+    // Si es un array
+    if (Array.isArray(flavorData)) {
+      // Si el array tiene un solo elemento que es un string, usarlo
+      if (flavorData.length === 1 && typeof flavorData[0] === 'string') {
+        const stringData = flavorData[0];
+        console.log('📦 Extrayendo string del array:', stringData);
+        
+        // Limpiar el string completamente
+        let cleanedString = stringData
+          .replace(/[\[\]]/g, '')     // Remover TODOS los corchetes
+          .replace(/["\\']/g, '')     // Remover TODAS las comillas
+          .replace(/\\/g, '')         // Remover backslashes
+          .trim();
+
+        console.log('🧹 String limpio:', cleanedString);
+
+        // Dividir por comas
+        flavorArray = cleanedString
+          .split(',')
+          .map(f => f.trim())
+          .filter(f => f.length > 0);
+      } 
+      // Si el array tiene múltiples elementos, procesarlos directamente
+      else {
+        flavorArray = flavorData
+          .map(f => String(f).replace(/["\\']/g, '').trim())
+          .filter(f => f.length > 0);
+      }
+    }
+    // Si es un string
+    else if (typeof flavorData === 'string') {
+      // Limpiar el string completamente
+      let cleanedString = flavorData
+        .replace(/[\[\]]/g, '')     // Remover TODOS los corchetes
+        .replace(/["\\']/g, '')     // Remover TODAS las comillas
+        .replace(/\\/g, '')         // Remover backslashes
+        .trim();
+
+      console.log('🧹 String limpio:', cleanedString);
+
+      // Dividir por comas
+      flavorArray = cleanedString
+        .split(',')
+        .map(f => f.trim())
+        .filter(f => f.length > 0);
+    }
+
+    console.log('✅ Sabores procesados:', flavorArray);
+    return flavorArray;
+  };
+
+  // Función para agregar al carrito
+  const handleAddToCart = async () => {
+    if (!product) return;
+
+    // Validar que haya un sabor seleccionado si hay sabores disponibles
+    if (flavors.length > 0 && !selectedFlavor) {
+      Alert.alert('Selecciona un sabor', 'Por favor selecciona un sabor antes de agregar al carrito');
+      return;
+    }
+
+    setAddingToCart(true);
+
+    try {
+      // Obtener el carrito actual
+      const cartString = await AsyncStorage.getItem('cart');
+      const cart = cartString ? JSON.parse(cartString) : [];
+
+      // Crear ID único que incluya el sabor si existe
+      const itemId = flavors.length > 0 
+        ? `${product._id}_${selectedFlavor}` 
+        : product._id;
+
+      // Verificar si el producto con ese sabor ya está en el carrito
+      const existingItemIndex = cart.findIndex(item => item.id === itemId);
+
+      if (existingItemIndex !== -1) {
+        // Si ya existe, actualizar la cantidad
+        cart[existingItemIndex].quantity += quantity;
+        
+        Alert.alert(
+          '✅ Actualizado',
+          `Se agregaron ${quantity} más unidades de ${product.name}${selectedFlavor ? ` - ${selectedFlavor}` : ''}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        // Si no existe, agregar nuevo producto
+        const newItem = {
+          id: itemId,
+          productId: product._id,
+          name: product.name,
+          price: product.price,
+          image: product.image || 'https://via.placeholder.com/100',
+          quantity: quantity,
+          flavor: selectedFlavor || ''
+        };
+        cart.push(newItem);
+        
+        Alert.alert(
+          '✅ Agregado al carrito',
+          `${product.name}${selectedFlavor ? ` - ${selectedFlavor}` : ''} se agregó correctamente`,
+          [
+            { text: 'Seguir comprando', style: 'cancel' },
+            { 
+              text: 'Ir al carrito', 
+              onPress: () => navigation.navigate('Main', { screen: 'Carrito' })
+            }
+          ]
+        );
+      }
+
+      // Guardar el carrito actualizado
+      await AsyncStorage.setItem('cart', JSON.stringify(cart));
+      console.log('✅ Carrito actualizado:', cart);
+
+      // Resetear cantidad
+      setQuantity(1);
+
+    } catch (error) {
+      console.error('❌ Error agregando al carrito:', error);
+      Alert.alert('Error', 'No se pudo agregar el producto al carrito. Intenta de nuevo.');
+    } finally {
+      setAddingToCart(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -106,14 +258,9 @@ const ProductDetail = () => {
 
         {/* Información del producto */}
         <View style={styles.contentSection}>
-          {/* Nombre y sabor */}
+          {/* Nombre */}
           <View style={styles.titleSection}>
             <Text style={styles.productName}>{product.name}</Text>
-            {product.flavor && (
-              <View style={styles.flavorBadge}>
-                <Text style={styles.flavorText}>{product.flavor}</Text>
-              </View>
-            )}
           </View>
 
           {/* Precio destacado */}
@@ -123,6 +270,39 @@ const ProductDetail = () => {
               {product.price ? product.price.toFixed(2) : '0.00'}
             </Text>
           </View>
+
+          {/* Selector de Sabores */}
+          {flavors.length > 0 && (
+            <View style={styles.flavorSection}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="color-palette" size={20} color="#0C133F" />
+                <Text style={styles.sectionTitle}>Elige tu sabor</Text>
+              </View>
+              <View style={styles.flavorGrid}>
+                {flavors.map((flavor, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.flavorOption,
+                      selectedFlavor === flavor && styles.flavorOptionSelected
+                    ]}
+                    onPress={() => setSelectedFlavor(flavor)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[
+                      styles.flavorOptionText,
+                      selectedFlavor === flavor && styles.flavorOptionTextSelected
+                    ]}>
+                      {flavor}
+                    </Text>
+                    {selectedFlavor === flavor && (
+                      <Ionicons name="checkmark-circle" size={18} color="#0C133F" style={styles.flavorCheck} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
 
           {/* Descripción */}
           <View style={styles.descriptionSection}>
@@ -141,6 +321,7 @@ const ProductDetail = () => {
                 <TouchableOpacity 
                   onPress={() => setQuantity(q => Math.max(1, q - 1))} 
                   style={styles.quantityBtn}
+                  disabled={addingToCart}
                 >
                   <Ionicons name="remove" size={18} color="#fff" />
                 </TouchableOpacity>
@@ -148,21 +329,33 @@ const ProductDetail = () => {
                 <TouchableOpacity 
                   onPress={() => setQuantity(q => q + 1)} 
                   style={styles.quantityBtn}
+                  disabled={addingToCart}
                 >
                   <Ionicons name="add" size={18} color="#fff" />
                 </TouchableOpacity>
               </View>
             </View>
 
-            <TouchableOpacity style={styles.addToCartButton}>
+            <TouchableOpacity 
+              style={[styles.addToCartButton, addingToCart && styles.addToCartButtonDisabled]}
+              onPress={handleAddToCart}
+              disabled={addingToCart}
+              activeOpacity={0.8}
+            >
               <View style={styles.buttonContent}>
-                <Ionicons name="cart" size={22} color="#fff" />
-                <View style={styles.buttonTextContainer}>
-                  <Text style={styles.buttonLabel}>Agregar al carrito</Text>
-                  <Text style={styles.buttonPrice}>
-                    ${(product.price * quantity).toFixed(2)}
-                  </Text>
-                </View>
+                {addingToCart ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="cart" size={22} color="#fff" />
+                    <View style={styles.buttonTextContainer}>
+                      <Text style={styles.buttonLabel}>Agregar al carrito</Text>
+                      <Text style={styles.buttonPrice}>
+                        ${(product.price * quantity).toFixed(2)}
+                      </Text>
+                    </View>
+                  </>
+                )}
               </View>
             </TouchableOpacity>
           </View>
@@ -273,7 +466,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   
-  // Título y sabor
+  // Título
   titleSection: {
     marginBottom: 16,
   },
@@ -281,23 +474,7 @@ const styles = StyleSheet.create({
     fontSize: 28, 
     fontWeight: 'bold',
     color: '#1f2937',
-    marginBottom: 10,
     lineHeight: 36,
-  },
-  flavorBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#e0f2fe',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignSelf: 'flex-start',
-  },
-  flavorText: {
-    fontSize: 13,
-    color: '#0C133F',
-    fontWeight: '600',
-    marginLeft: 4,
   },
   
   // Precio
@@ -322,8 +499,8 @@ const styles = StyleSheet.create({
     color: '#0C133F',
   },
   
-  // Descripción
-  descriptionSection: {
+  // Selector de Sabores
+  flavorSection: {
     marginBottom: 24,
   },
   sectionHeader: {
@@ -336,6 +513,41 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1f2937',
     marginLeft: 8,
+  },
+  flavorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  flavorOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  flavorOptionSelected: {
+    backgroundColor: '#e0f2fe',
+    borderColor: '#0C133F',
+  },
+  flavorOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  flavorOptionTextSelected: {
+    color: '#0C133F',
+  },
+  flavorCheck: {
+    marginLeft: 6,
+  },
+  
+  // Descripción
+  descriptionSection: {
+    marginBottom: 24,
   },
   descriptionText: { 
     fontSize: 15, 
@@ -386,6 +598,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 12,
     elevation: 8,
+  },
+  addToCartButtonDisabled: {
+    opacity: 0.6,
   },
   buttonContent: {
     flexDirection: 'row',

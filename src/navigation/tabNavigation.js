@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Platform, Keyboard } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Productos from '../screens/Productos';
 import Home from '../screens/HomeScreen';
@@ -11,10 +12,41 @@ import PerfilScreen from '../screens/PerfilScreen';
 
 const Tab = createBottomTabNavigator();
 
-const TabNavigator = ({ route }) => {
+const TabNavigator = ({ route, navigation }) => {
   // Obtener userId y userName de los parámetros de ruta
-  const { userId, userName } = route?.params || {};
+  const { userId, userName, screen } = route?.params || {};
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  // Cargar datos del usuario desde AsyncStorage
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userString = await AsyncStorage.getItem('user');
+        if (userString) {
+          const user = JSON.parse(userString);
+          setUserData(user);
+          console.log('✅ Usuario cargado en TabNavigator:', user);
+        } else {
+          console.warn('⚠️ No hay usuario en AsyncStorage');
+        }
+      } catch (error) {
+        console.error('❌ Error cargando usuario:', error);
+      }
+    };
+    
+    loadUserData();
+  }, []);
+
+  // Navegar a la pantalla específica si se pasa como parámetro
+  useEffect(() => {
+    if (screen && navigation) {
+      // Pequeño delay para asegurar que los tabs estén montados
+      setTimeout(() => {
+        navigation.navigate(screen);
+      }, 100);
+    }
+  }, [screen, navigation]);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -35,6 +67,10 @@ const TabNavigator = ({ route }) => {
       keyboardDidHideListener.remove();
     };
   }, []);
+
+  // Combinar datos de route params y AsyncStorage
+  const finalUserId = userId || userData?.id || userData?._id;
+  const finalUserName = userName || userData?.name || userData?.email?.split('@')[0];
 
   return (
     <Tab.Navigator
@@ -96,27 +132,47 @@ const TabNavigator = ({ route }) => {
       <Tab.Screen 
         name="Home" 
         component={Home}
-        initialParams={{ userId, userName }}
+        initialParams={{ 
+          userId: finalUserId, 
+          userName: finalUserName,
+          userData: userData 
+        }}
       />
       <Tab.Screen 
         name="IMC" 
         component={IMC}
-        initialParams={{ userId, userName }}
+        initialParams={{ 
+          userId: finalUserId, 
+          userName: finalUserName,
+          userData: userData 
+        }}
       />
       <Tab.Screen 
         name="Productos" 
         component={Productos}
-        initialParams={{ userId, userName }}
+        initialParams={{ 
+          userId: finalUserId, 
+          userName: finalUserName,
+          userData: userData 
+        }}
       />
       <Tab.Screen 
         name="Carrito" 
         component={CarritoScreen}
-        initialParams={{ userId, userName }}
+        initialParams={{ 
+          userId: finalUserId, 
+          userName: finalUserName,
+          userData: userData 
+        }}
       />
       <Tab.Screen 
         name="Perfil" 
         component={PerfilScreen}
-        initialParams={{ userId, userName }}
+        initialParams={{ 
+          userId: finalUserId, 
+          userName: finalUserName,
+          userData: userData 
+        }}
       />
     </Tab.Navigator>
   );

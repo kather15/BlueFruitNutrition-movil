@@ -51,6 +51,43 @@ export default function CarritoScreen({ navigation }) {
     .reduce((sum, i) => sum + i.quantity * i.price, 0)
     .toFixed(2);
 
+  // 🔹 Función para proceder al pago
+  const handleProceedToCheckout = async () => {
+    if (items.length === 0) {
+      Alert.alert("Carrito vacío", "Agrega productos antes de continuar");
+      return;
+    }
+
+    try {
+      // Preparar datos de la compra
+      const datosCompra = {
+        productos: items.map(item => ({
+          nombre: item.name,
+          cantidad: item.quantity,
+          precio: item.price,
+          imagen: item.image,
+          sabor: item.flavor || ''
+        })),
+        total: parseFloat(total),
+        orden: {
+          numeroOrden: `ORD-${Date.now()}`,
+          fecha: new Date().toISOString()
+        }
+      };
+
+      // Guardar en AsyncStorage
+      await AsyncStorage.setItem('datosCompra', JSON.stringify(datosCompra));
+      console.log('✅ Datos de compra guardados:', datosCompra);
+
+      // Navegar al checkout
+      navigation.navigate('Checkout');
+
+    } catch (error) {
+      console.error('❌ Error guardando datos de compra:', error);
+      Alert.alert('Error', 'Hubo un problema al procesar tu compra. Intenta de nuevo.');
+    }
+  };
+
   // 🔹 Renderizar cada producto
   const renderItem = ({ item }) => (
     <View style={styles.itemCard}>
@@ -61,7 +98,12 @@ export default function CarritoScreen({ navigation }) {
       />
       <View style={styles.info}>
         <View style={styles.itemHeader}>
-          <Text style={styles.name}>{item.name}</Text>
+          <View style={styles.nameContainer}>
+            <Text style={styles.name}>{item.name}</Text>
+            {item.flavor && (
+              <Text style={styles.flavor}>Sabor: {item.flavor}</Text>
+            )}
+          </View>
           <TouchableOpacity onPress={() => removeItem(item.id)}>
             <Icon name="close-circle" size={24} color="#0B1F50" />
           </TouchableOpacity>
@@ -103,34 +145,59 @@ export default function CarritoScreen({ navigation }) {
         data={items}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>Tu carrito está vacío 🛒</Text>
+          <View style={styles.emptyContainer}>
+            <Icon name="cart-outline" size={80} color="#d1d5db" />
+            <Text style={styles.emptyText}>Tu carrito está vacío</Text>
+            <Text style={styles.emptySubtext}>
+              Agrega productos para empezar
+            </Text>
+          </View>
         }
       />
 
-      <TouchableOpacity
-        style={styles.addMoreBtn}
-        onPress={() => navigation.navigate("Productos")}
-      >
-        <Text style={styles.addMoreText}>Agregar más productos</Text>
-      </TouchableOpacity>
+      {/* Contenedor de botones con fondo */}
+      <View style={styles.bottomContainer}>
+        {items.length > 0 && (
+          <View style={styles.totalContainer}>
+            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalValue}>${total}</Text>
+          </View>
+        )}
 
-      <TouchableOpacity
-        style={[styles.payBtn, { opacity: items.length === 0 ? 0.5 : 1 }]}
-        disabled={items.length === 0}
-        onPress={() => Alert.alert("Total a pagar", `$${total}`)}
-      >
-        <Text style={styles.payText}>
-          Ir a pagar {items.length > 0 ? `  $${total}` : ""}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.addMoreBtn}
+          onPress={() => navigation.navigate("Productos")}
+        >
+          <Icon name="add-circle-outline" size={20} color="#0B1F50" />
+          <Text style={styles.addMoreText}>Agregar más productos</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.payBtn, { opacity: items.length === 0 ? 0.5 : 1 }]}
+          disabled={items.length === 0}
+          onPress={handleProceedToCheckout}
+        >
+          <Icon name="card-outline" size={22} color="#fff" />
+          <Text style={styles.payText}>
+            {items.length > 0 ? `Ir a pagar • $${total}` : "Carrito vacío"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f9f9", paddingHorizontal: 16 },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#f9f9f9",
+  },
+  header: {
+    marginTop: 10,
+    paddingHorizontal: 16,
+  },
   title: {
     fontSize: 28,
     fontWeight: "bold",
@@ -139,6 +206,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: 1,
     paddingTop: 10,
+  },
+  divider: {
+    height: 2,
+    backgroundColor: "#0B1F50",
+    marginHorizontal: 60,
+    marginBottom: 10,
+  },
+  listContent: { 
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    paddingTop: 8,
   },
   itemCard: {
     flexDirection: "row",
@@ -152,14 +230,38 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
   },
-  img: { width: 70, height: 70, borderRadius: 12, marginRight: 16 },
-  info: { flex: 1, justifyContent: "center" },
+  img: { 
+    width: 70, 
+    height: 70, 
+    borderRadius: 12, 
+    marginRight: 16,
+    backgroundColor: '#f3f4f6',
+  },
+  info: { 
+    flex: 1, 
+    justifyContent: "center" 
+  },
   itemHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
+    marginBottom: 8,
   },
-  name: { fontSize: 18, fontWeight: "700", marginBottom: 6, color: "#333" },
+  nameContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  name: { 
+    fontSize: 16, 
+    fontWeight: "700", 
+    marginBottom: 4, 
+    color: "#333" 
+  },
+  flavor: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "500",
+  },
   controls: {
     flexDirection: "row",
     alignItems: "center",
@@ -183,31 +285,95 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#0B1F50",
   },
-  payBtn: {
-    backgroundColor: "#0B1F50",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginVertical: 16,
-    marginHorizontal: 16,
+  
+  // Contenedor vacío
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
   },
-  payText: { color: "#fff", fontSize: 20, fontWeight: "700" },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 20,
+    fontWeight: '600',
+    color: "#1f2937",
+  },
+  emptySubtext: {
+    textAlign: "center",
+    marginTop: 8,
+    fontSize: 14,
+    color: "#9ca3af",
+  },
+
+  // Contenedor inferior con botones
+  bottomContainer: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 110, // Espacio extra para el tab bar
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: -3 },
+    elevation: 8,
+  },
+  totalContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  totalLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  totalValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#0B1F50',
+  },
   addMoreBtn: {
+    flexDirection: 'row',
     backgroundColor: "#f0f0f0",
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
-    marginHorizontal: 16,
+    justifyContent: 'center',
+    marginBottom: 12,
+    gap: 8,
   },
   addMoreText: {
     color: "#0B1F50",
     fontWeight: "700",
-    fontSize: 18,
+    fontSize: 16,
+    marginLeft: 4,
   },
-  emptyText: {
-    textAlign: "center",
-    marginTop: 40,
-    fontSize: 18,
-    color: "#999",
+  payBtn: {
+    flexDirection: 'row',
+    backgroundColor: "#0B1F50",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: 'center',
+    shadowColor: '#0B1F50',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+    gap: 8,
+  },
+  payText: { 
+    color: "#fff", 
+    fontSize: 18, 
+    fontWeight: "700",
+    marginLeft: 4,
   },
 });

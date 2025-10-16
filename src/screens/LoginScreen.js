@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config.js';
 
 const { width, height } = Dimensions.get('window');
@@ -32,36 +33,56 @@ const LoginScreen = ({ navigation }) => {
 
     try {
       const response = await fetch(`${API_URL}/login`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ email, password }),
-});
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await response.json();
-      setLoading(false);
 
       if (response.ok) {
         if (data.role !== 'customer') {
+          setLoading(false);
           Alert.alert('Error', 'Solo clientes pueden ingresar aquí');
           return;
         }
 
+        // Preparar datos del usuario
+        const userData = {
+          id: data.user?.id || data.user?._id || data.id || data._id,
+          name: data.user?.name || data.name,
+          email: data.user?.email || data.email || email,
+          role: data.role || data.user?.role || 'customer',
+          token: data.token || '',
+        };
+
+        console.log('✅ Datos del usuario a guardar:', userData);
+
+        // Guardar en AsyncStorage
+        await AsyncStorage.setItem('user', JSON.stringify(userData));
+        
+        // Verificar que se guardó correctamente
+        const savedUser = await AsyncStorage.getItem('user');
+        console.log('✅ Usuario guardado en AsyncStorage:', savedUser);
+
+        setLoading(false);
         Alert.alert('Éxito', 'Login exitoso');
 
-navigation.replace('Main', {
-  userId: data.user.id,
-  userName: data.user.name,
-});
-
-
+        // Navegar a Main con los datos del usuario
+        navigation.replace('Main', {
+          userId: userData.id,
+          userName: userData.name,
+        });
 
       } else {
+        setLoading(false);
         Alert.alert('Error', data.message || 'Credenciales incorrectas');
       }
     } catch (error) {
       setLoading(false);
+      console.error('❌ Error en login:', error);
       Alert.alert('Error', 'No se pudo conectar con el servidor');
     }
   };
