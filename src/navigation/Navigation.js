@@ -1,42 +1,69 @@
-// navigation/AppNavigator.js
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// Pantallas existentes
+// Pantallas de autenticación
 import RegisterScreen from '../screens/RegisterScreen';
 import VerificationScreen from '../screens/VerificationScreen';
 import LoginScreen from '../screens/LoginScreen';
-import IMCScreen from '../screens/IMCscreen'; 
-import DashboardScreen from '../screens/DashboardScreen';
-import NewPasswordScreen from '../screens/NewPasswordScreen';
 import PasswordRecovery from '../screens/PasswordRecovery';
-import HomeScreen from '../screens/HomeScreen.js';
+import NewPasswordScreen from '../screens/NewPasswordScreen';
 
-// Nuevas pantallas de productos
-import ProductsList from '../screens/Productos.js';
+// Pantallas principales
+import TabNavigator from './tabNavigation.js';
+import BillScreen from "../screens/BillScreen.js"
 import ProductDetail from '../screens/VerProductos.js';
-import TabNavigator from '../navigation/tabNavigation.js'
+import DashboardScreen from '../screens/DashboardScreen';
+import PaymentScreen from '../screens/PaymentScreen';
+import CheckoutScreen from '../screens/checkout';
+import StoresMapScreen from '../screens/StoresMapScreen.js';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="prueba" screenOptions={{ headerShown: false }}>
-        {/* Pantallas de usuario */}
-        <Stack.Screen name="IMCScreen" component={IMCScreen} />
+      <Stack.Navigator 
+        initialRouteName="Login" 
+        screenOptions={{ headerShown: false }}
+      >
+        {/* Pantallas de Autenticación */}
+        <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-          <Stack.Screen name="prueba" component={TabNavigator} />
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} /> 
-                <Stack.Screen name="HomeScreen" component={HomeScreen} />
-
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecovery} />
         <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
-        <Stack.Screen name="ProductsList" component={ProductsList} options={{ title: 'Productos', headerShown: true }} />
-        <Stack.Screen name="ProductDetail" component={ProductDetail} options={{ title: 'Detalle del Producto', headerShown: true }} />
+
+        {/* Pantalla Principal con Tabs (incluye Home, IMC, Productos, Carrito, Perfil) */}
+        <Stack.Screen name="Main" component={TabNavigator} />
+
+        {/* Pantallas secundarias (sin tabs) */}
+        <Stack.Screen 
+          name="ProductDetail" 
+          component={ProductDetail} 
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="Bill" 
+          component={BillScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="Payment" 
+          component={PaymentScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="Checkout" 
+          component={CheckoutScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="StoresMap" 
+          component={StoresMapScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

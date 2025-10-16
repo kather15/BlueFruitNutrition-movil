@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { API_URL } from '../config.js';
 
 const VerificationScreen = ({ route, navigation }) => {
   const { email, verificationCookie } = route.params;
@@ -27,22 +28,24 @@ const VerificationScreen = ({ route, navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://bluefruitnutrition1.onrender.com/api/registerCustomers/verifyCodeEmail', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Cookie: verificationCookie,
-        },
-        body: JSON.stringify({ requireCode: code }),
-      });
+
+     const response = await fetch(`${API_URL}/registerCustomers/verifyCodeEmail`, 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: verificationCookie,
+          },
+          body: JSON.stringify({ requireCode: code }),
+        }
+      );
 
       const data = await response.json();
-
       setLoading(false);
 
       if (response.ok) {
         Alert.alert('Éxito', 'Correo verificado correctamente');
-        navigation.navigate('Login');
+        navigation.navigate('LoginScreen');
       } else {
         Alert.alert('Error', data.message || 'Código incorrecto');
       }
@@ -115,24 +118,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 40, // Espacio arriba para separar del header
+    marginTop: 40,
   },
   input: {
     backgroundColor: '#E6E6E6',
     borderRadius: 10,
     paddingHorizontal: 15,
     paddingVertical: 12,
-    marginBottom: 30, // Más espacio abajo del input
+    marginBottom: 30,
     fontSize: 16,
     color: '#000',
-    width: '80%', // Ancho fijo para alinear con botón
+    width: '80%',
   },
   button: {
     backgroundColor: '#0B0F33',
     paddingVertical: 15,
     borderRadius: 10,
     marginTop: 10,
-    width: '80%', // Ancho igual al input
+    width: '80%',
   },
   buttonText: {
     color: '#fff',

@@ -7,34 +7,45 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { API_URL } from '../config.js';
 
 const { width } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation, route }) => {
   const [userName, setUserName] = useState('Usuario');
   const [greeting, setGreeting] = useState('¡Buenos días!');
+  const [dailyTip, setDailyTip] = useState(null);
 
-useEffect(() => {
-  console.log('Params recibidos:', route.params);
+  // Obtener userId desde route.params
+  const userId = route?.params?.userId;
 
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour > 12) setGreeting('¡Buenos días!');
-  else if (hour >= 12 && hour < 20) setGreeting('¡Buenas tardes!');
-  else setGreeting('¡Buenas noches!');
+  useEffect(() => {
+    fetchRandomRecommendation();
 
-  if (route.params?.userName) {
-    setUserName(route.params.userName);
-  } else if (route.params?.userId) {
-    fetchUserNameFromAPI(route.params.userId);
-  } else {
-    console.warn('No se recibió ni userName ni userId');
-  }
-}, [route]);
+    console.log('Params recibidos en Home:', route?.params);
 
+    const { userName: receivedUserName, userId: receivedUserId } = route?.params || {};
+    console.log('UserName recibido:', receivedUserName);
+    console.log('UserId recibido:', receivedUserId);
+
+    if (receivedUserName) {
+      setUserName(receivedUserName);
+    } else if (receivedUserId) {
+      fetchUserNameFromAPI(receivedUserId);
+    } else {
+      console.warn('No se recibió ni userName ni userId');
+    }
+
+    // Saludo basado en la hora
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 12) setGreeting('¡Buenos días!');
+    else if (hour >= 12 && hour < 20) setGreeting('¡Buenas tardes!');
+    else setGreeting('¡Buenas noches!');
+  }, [route]);
 
   const fetchUserNameFromAPI = async (userId) => {
     try {
-      const response = await fetch(`https://bluefruitnutrition1.onrender.com/api/customers/${userId}`);
+      const response = await fetch(`${API_URL}/customers/${userId}`);
       const data = await response.json();
       setUserName(data?.name || 'Usuario');
     } catch (error) {
@@ -44,15 +55,42 @@ useEffect(() => {
   };
 
   const menuOptions = [
-    { title: 'Mi Perfil', subtitle: 'Información personal', action: () => navigation.navigate('Profile') },
-    { title: 'Calcular masa corporal', subtitle: 'Ver mi plan personalizado', action: () => navigation.navigate('IMCScreen') },
-
+    {
+      title: 'Mi Perfil',
+      subtitle: 'Información personal',
+      action: () =>
+        navigation.navigate('Perfil', {
+          userId: userId,
+        }),
+    },
+    {
+      title: 'Calcular masa corporal',
+      subtitle: 'Ver mi plan personalizado',
+      action: () => navigation.navigate('IMC'),
+    },
+   
+    {
+      title: 'Tiendas Cercanas',
+      subtitle: 'Encuentra donde comprar',
+      action: () => navigation.navigate('StoresMap'),
+    },
   ];
 
-  const quickActions = [
-    { title: 'Registrar Comida', color: '#10b981', action: () => navigation.navigate('FoodLog') },
-    { title: 'Peso Hoy', color: '#f59e0b', action: () => navigation.navigate('WeightLog') }
-  ];
+  const fetchRandomRecommendation = async () => {
+    try {
+      const response = await fetch('https://bluefruitnutrition-production.up.railway.app/api/recommendation');
+      const data = await response.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        const randomIndex = Math.floor(Math.random() * data.length);
+        setDailyTip(data[randomIndex]);
+      } else {
+        console.warn('No recommendations found.');
+      }
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+    }
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -66,8 +104,6 @@ useEffect(() => {
 
       <View style={styles.mainContainer}>
         <View style={styles.content}>
-
-
           <View style={styles.menuContainer}>
             <Text style={styles.sectionTitle}>Menú Principal</Text>
             {menuOptions.map((option, index) => (
@@ -89,12 +125,14 @@ useEffect(() => {
 
           <View style={styles.tipContainer}>
             <Text style={styles.sectionTitle}>Consejo del Día</Text>
-            <View style={styles.tipCard}>
-              <Text style={styles.tipTitle}>💡 Hidratación</Text>
-              <Text style={styles.tipText}>
-                Recuerda beber al menos 8 vasos de agua al día para mantener tu metabolismo activo y tu piel saludable.
-              </Text>
-            </View>
+            {dailyTip ? (
+              <View style={styles.tipCard}>
+                <Text style={styles.tipTitle}>💡 {dailyTip.title}</Text>
+                <Text style={styles.tipText}>{dailyTip.text}</Text>
+              </View>
+            ) : (
+              <Text style={{ color: '#6b7280' }}>Cargando consejo...</Text>
+            )}
           </View>
         </View>
       </View>
@@ -120,16 +158,6 @@ const styles = StyleSheet.create({
     minHeight: '100%',
   },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#1f2937', marginBottom: 15 },
-  quickActionsContainer: { marginBottom: 30 },
-  quickActionsRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 15 },
-  quickActionCard: {
-    flex: 1,
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  quickActionText: { color: '#ffffff', fontSize: 14, fontWeight: '600', textAlign: 'center' },
   menuContainer: { marginBottom: 30 },
   menuCard: {
     backgroundColor: '#f9fafb',

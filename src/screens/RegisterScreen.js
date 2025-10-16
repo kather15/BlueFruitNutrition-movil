@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Platform,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
-const API_URL = 'https://bluefruitnutrition1.onrender.com/api/registerCustomers';
+import { API_URL } from '../config.js';
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -13,6 +21,8 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [birthdate, setBirthdate] = useState('');
+  const [gender, setGender] = useState('');
+  const [address, setAddress] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -33,7 +43,9 @@ const RegisterScreen = ({ navigation }) => {
     email.trim() &&
     password.trim() &&
     phone.trim() &&
-    birthdate.trim();
+    birthdate.trim() &&
+    gender.trim() &&
+    address.trim();
 
   const handleRegister = async () => {
     if (!isAdult(birthdate)) {
@@ -42,7 +54,7 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URL}/registerCustomers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -52,6 +64,8 @@ const RegisterScreen = ({ navigation }) => {
           password,
           phone,
           dateBirth: birthdate,
+          gender,
+          address,
         }),
       });
 
@@ -72,12 +86,15 @@ const RegisterScreen = ({ navigation }) => {
           verificationCookie: cookie,
         });
 
+        // Limpiar campos
         setName('');
         setLastname('');
         setEmail('');
         setPassword('');
         setPhone('');
         setBirthdate('');
+        setGender('');
+        setAddress('');
       } else {
         Alert.alert('Error', data.message || 'Error en el registro');
       }
@@ -166,6 +183,27 @@ const RegisterScreen = ({ navigation }) => {
           />
         )}
 
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={gender}
+            onValueChange={(itemValue) => setGender(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Selecciona Género" value="" color="#999" />
+            <Picker.Item label="Masculino" value="Masculino" />
+            <Picker.Item label="Femenino" value="Femenino" />
+            <Picker.Item label="Otro" value="Otro" />
+          </Picker>
+        </View>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Dirección"
+          placeholderTextColor="#666"
+          value={address}
+          onChangeText={setAddress}
+        />
+
         <TouchableOpacity
           style={[styles.button, { opacity: isFormValid ? 1 : 0.5 }]}
           onPress={handleRegister}
@@ -205,19 +243,19 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     flex: 1,
-    justifyContent: 'center', // centra verticalmente
-    alignItems: 'center',     // centra horizontalmente
-    marginTop: 40,            // espacio arriba para separar del header
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 40,
   },
   input: {
     backgroundColor: '#E6E6E6',
     borderRadius: 10,
     paddingHorizontal: 15,
     paddingVertical: 12,
-    marginBottom: 30,         // espacio más grande entre inputs
+    marginBottom: 30,
     fontSize: 16,
     color: '#000',
-    width: '80%',             // ancho fijo para inputs
+    width: '80%',
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -225,7 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6E6E6',
     borderRadius: 10,
     paddingHorizontal: 12,
-    marginBottom: 30,         // aumenta espacio aquí también
+    marginBottom: 30,
     width: '80%',
   },
   passwordInput: {
@@ -239,12 +277,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     paddingHorizontal: 10,
   },
+  pickerContainer: {
+    backgroundColor: '#E6E6E6',
+    borderRadius: 10,
+    marginBottom: 30,
+    width: '80%',
+    justifyContent: 'center',
+  },
+  picker: {
+    width: '100%',
+    color: '#000',
+  },
   button: {
     backgroundColor: '#0B0F33',
     paddingVertical: 15,
     borderRadius: 10,
     marginTop: 10,
-    width: '80%',             // mismo ancho que inputs
+    width: '80%',
   },
   buttonText: {
     color: '#fff',

@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { API_URL } from '../config.js';
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,13 +31,13 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://bluefruitnutrition1.onrender.com/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(`${API_URL}/login`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ email, password }),
+});
 
       const data = await response.json();
       setLoading(false);
@@ -49,11 +50,12 @@ const LoginScreen = ({ navigation }) => {
 
         Alert.alert('Éxito', 'Login exitoso');
 
-        // Navega a HomeScreen y pasa los datos del usuario
-        navigation.replace('HomeScreen', {
-          userId: data.id,
-          userName: data.name,
-        });
+navigation.replace('Main', {
+  userId: data.user.id,
+  userName: data.user.name,
+});
+
+
 
       } else {
         Alert.alert('Error', data.message || 'Credenciales incorrectas');

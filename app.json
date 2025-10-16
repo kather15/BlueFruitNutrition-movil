@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "backgroundColor": "#0C133F"
+      "backgroundColor": "#0C133F",
+      "config": {
+        "googleMapsApiKey": "AIzaSyCglImwJfG0z1piDhPQxNmlMOcAZmS9iKc"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -23,11 +26,19 @@
         "backgroundColor": "#0C133F"
       },
       "edgeToEdgeEnabled": true,
-      "backgroundColor": "#0C133F"
+      "backgroundColor": "#0C133F",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCglImwJfG0z1piDhPQxNmlMOcAZmS9iKc"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/logoBlueFrui.png",
       "backgroundColor": "#0C133F"
-    }
+    },
+    "plugins": [
+      "expo-mail-composer"
+    ]
   }
 }
