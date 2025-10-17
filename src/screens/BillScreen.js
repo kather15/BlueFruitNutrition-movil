@@ -141,12 +141,9 @@ export default function BillScreen({ navigation, route }) {
         Alert.alert('Éxito', 'Factura descargada en: ' + fileUri);
       }
 
-      // Navegar al Home después de descargar
+      // Navegar al Home después de descargar (PRESERVANDO EL USUARIO)
       setTimeout(() => {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Main', params: { screen: 'Home' } }],
-        });
+        volverAlHome();
       }, 1500);
 
     } catch (error) {
@@ -217,15 +214,46 @@ export default function BillScreen({ navigation, route }) {
     }
   };
 
-  const volverAlHome = () => {
-    // Limpiar datos de compra y envío del AsyncStorage
-    AsyncStorage.multiRemove(['datosCompra', 'datosEnvio']);
-    
-    // Navegar al Home usando reset para limpiar el stack de navegación
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Main', params: { screen: 'Home' } }],
-    });
+  const volverAlHome = async () => {
+    try {
+      // IMPORTANTE: Limpiar solo datos de compra y envío, NO el usuario
+      await AsyncStorage.multiRemove(['datosCompra', 'datosEnvio']);
+      console.log('✅ Datos de compra y envío limpiados');
+      
+      // Verificar que el usuario sigue en AsyncStorage
+      const userString = await AsyncStorage.getItem('user');
+      const userData = userString ? JSON.parse(userString) : null;
+      
+      console.log('👤 Usuario después de limpiar:', userData);
+      
+      if (userData && userData.id) {
+        // Navegar al Home PRESERVANDO el usuario
+        navigation.reset({
+          index: 0,
+          routes: [{ 
+            name: 'Main', 
+            params: { 
+              screen: 'Home',
+              userId: userData.id,
+              userName: userData.name,
+            } 
+          }],
+        });
+      } else {
+        console.warn('⚠️ No se encontró usuario, redirigiendo al login');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error en volverAlHome:', error);
+      // En caso de error, intentar navegar de todas formas
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main', params: { screen: 'Home' } }],
+      });
+    }
   };
 
   if (loading) {
@@ -344,8 +372,9 @@ export default function BillScreen({ navigation, route }) {
         </View>
 
         {/* Botones de acción */}
-         <View style={styles.botonesContainer}>
-           {/* <TouchableOpacity 
+        <View style={styles.botonesContainer}>
+          {/* Botón Enviar Email - Comentado por ahora
+          <TouchableOpacity 
             style={[styles.boton, styles.botonPrimario]}
             onPress={handleEnviarCorreo}
             disabled={enviandoEmail}
@@ -358,7 +387,8 @@ export default function BillScreen({ navigation, route }) {
                 <Text style={styles.botonTexto}>Enviar al Correo</Text>
               </>
             )}
-          </TouchableOpacity>*/}
+          </TouchableOpacity>
+          */}
 
           <TouchableOpacity 
             style={[styles.boton, styles.botonSecundario]}

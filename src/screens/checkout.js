@@ -16,92 +16,87 @@ import RNPickerSelect from 'react-native-picker-select';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const departamentos = {
-  Ahuachapán: ["Ahuachapán", "Apaneca", "Atiquizaya", "Concepción de Ataco", "El Refugio", "Guaymango", "Jujutla", "San Francisco Menéndez", "San Lorenzo", "San Pedro Puxtla", "Tacuba", "Turín"],
-  Santa_Ana: ["Candelaria de la Frontera", "Chalchuapa", "Coatepeque", "El Congo", "El Porvenir", "Masahuat", "Metapán", "San Antonio Pajonal", "San Sebastián Salitrillo", "Santa Ana", "Santa Rosa Guachipilín", "Santiago de la Frontera", "Texistepeque"],
-  Sonsonate: ["Acajutla", "Armenia", "Caluco", "Cuisnahuat", "Izalco", "Juayúa", "Nahuizalco", "Nahulingo", "Salcoatitán", "San Antonio del Monte", "San Julián", "Santa Catarina Masahuat", "Santa Isabel Ishuatán", "Santo Domingo Guzmán", "Sonsonate", "Sonzacate"],
-  San_Salvador: ["Aguilares", "Apopa", "Ayutuxtepeque", "Cuscatancingo", "Ciudad Delgado", "El Paisnal", "Guazapa", "Ilopango", "Mejicanos", "Nejapa", "Panchimalco", "Rosario de Mora", "San Marcos", "San Martín", "San Salvador", "Santiago Texacuangos", "Santo Tomás", "Soyapango", "Tonacatepeque"],
-  La_Libertad: ["Antiguo Cuscatlán", "Chiltiupán", "Ciudad Arce", "Colón", "Comasagua", "Huizúcar", "Jayaque", "Jicalapa", "La Libertad", "Santa Tecla", "Nuevo Cuscatlán", "San Juan Opico", "Quezaltepeque", "Sacacoyo", "San José Villanueva", "San Matías", "San Pablo Tacachico", "Talnique", "Tamanique", "Teotepeque", "Tepecoyo", "Zaragoza"],
+  "Ahuachapán": ["Ahuachapán", "Apaneca", "Atiquizaya", "Concepción de Ataco", "El Refugio", "Guaymango", "Jujutla", "San Francisco Menéndez", "San Lorenzo", "San Pedro Puxtla", "Tacuba", "Turín"],
+  
+  "Santa Ana": ["Candelaria de la Frontera", "Chalchuapa", "Coatepeque", "El Congo", "El Porvenir", "Masahuat", "Metapán", "San Antonio Pajonal", "San Sebastián Salitrillo", "Santa Ana", "Santa Rosa Guachipilín", "Santiago de la Frontera", "Texistepeque"],
+  
+  "Sonsonate": ["Acajutla", "Armenia", "Caluco", "Cuisnahuat", "Izalco", "Juayúa", "Nahuizalco", "Nahulingo", "Salcoatitán", "San Antonio del Monte", "San Julián", "Santa Catarina Masahuat", "Santa Isabel Ishuatán", "Santo Domingo Guzmán", "Sonsonate", "Sonzacate"],
+  
+  "Chalatenango": ["Agua Caliente", "Arcatao", "Azacualpa", "Chalatenango", "Citala", "Comalapa", "Concepción Quezaltepeque", "Dulce Nombre de María", "El Carrizal", "El Paraíso", "La Laguna", "La Palma", "La Reina", "Las Vueltas", "Nueva Concepción", "Nueva Trinidad", "Nombre de Jesús", "Ojos de Agua", "Potonico", "San Antonio de la Cruz", "San Antonio Los Ranchos", "San Fernando", "San Francisco Lempa", "San Francisco Morazán", "San Ignacio", "San Isidro Labrador", "San José Cancasque", "San José Las Flores", "San Luis del Carmen", "San Miguel de Mercedes", "San Rafael", "Santa Rita", "Tejutla"],
+  
+  "La Libertad": ["Antiguo Cuscatlán", "Chiltiupán", "Ciudad Arce", "Colón", "Comasagua", "Huizúcar", "Jayaque", "Jicalapa", "La Libertad", "Santa Tecla", "Nuevo Cuscatlán", "San Juan Opico", "Quezaltepeque", "Sacacoyo", "San José Villanueva", "San Matías", "San Pablo Tacachico", "Talnique", "Tamanique", "Teotepeque", "Tepecoyo", "Zaragoza"],
+  
+  "San Salvador": ["Aguilares", "Apopa", "Ayutuxtepeque", "Cuscatancingo", "Ciudad Delgado", "El Paisnal", "Guazapa", "Ilopango", "Mejicanos", "Nejapa", "Panchimalco", "Rosario de Mora", "San Marcos", "San Martín", "San Salvador", "Santiago Texacuangos", "Santo Tomás", "Soyapango", "Tonacatepeque"],
+  
+  "Cuscatlán": ["Candelaria", "Cojutepeque", "El Carmen", "El Rosario", "Monte San Juan", "Oratorio de Concepción", "San Bartolomé Perulapía", "San Cristóbal", "San José Guayabal", "San Pedro Perulapán", "San Rafael Cedros", "San Ramón", "Santa Cruz Analquito", "Santa Cruz Michapa", "Suchitoto", "Tenancingo"],
+  
+  "La Paz": ["Cuyultitán", "El Rosario", "Jerusalén", "Mercedes La Ceiba", "Olocuilta", "Paraíso de Osorio", "San Antonio Masahuat", "San Emigdio", "San Francisco Chinameca", "San Juan Nonualco", "San Juan Talpa", "San Juan Tepezontes", "San Luis La Herradura", "San Luis Talpa", "San Miguel Tepezontes", "San Pedro Masahuat", "San Pedro Nonualco", "San Rafael Obrajuelo", "Santa María Ostuma", "Santiago Nonualco", "Tapalhuaca", "Zacatecoluca"],
+  
+  "Cabañas": ["Cinquera", "Dolores", "Guacotecti", "Ilobasco", "Jutiapa", "San Isidro", "Sensuntepeque", "Tejutepeque", "Victoria"],
+  
+  "San Vicente": ["Apastepeque", "Guadalupe", "San Cayetano Istepeque", "San Esteban Catarina", "San Ildefonso", "San Lorenzo", "San Sebastián", "San Vicente", "Santa Clara", "Santo Domingo", "Tecoluca", "Tepetitán", "Verapaz"],
+  
+  "Usulután": ["Alegría", "Berlín", "California", "Concepción Batres", "El Triunfo", "Ereguayquín", "Estanzuelas", "Jiquilisco", "Jucuapa", "Jucuarán", "Mercedes Umaña", "Nueva Granada", "Ozatlán", "Puerto El Triunfo", "San Agustín", "San Buenaventura", "San Dionisio", "San Francisco Javier", "Santa Elena", "Santa María", "Santiago de María", "Tecapán", "Usulután"],
+  
+  "San Miguel": ["Carolina", "Chapeltique", "Chinameca", "Chirilagua", "Ciudad Barrios", "Comacarán", "El Tránsito", "Lolotique", "Moncagua", "Nueva Guadalupe", "Nuevo Edén de San Juan", "Quelepa", "San Antonio del Mosco", "San Gerardo", "San Jorge", "San Luis de la Reina", "San Miguel", "San Rafael Oriente", "Sesori", "Uluazapa"],
+  
+  "Morazán": ["Arambala", "Cacaopera", "Chilanga", "Corinto", "Delicias de Concepción", "El Divisadero", "El Rosario", "Gualococti", "Guatajiagua", "Joateca", "Jocoaitique", "Jocoro", "Lolotiquillo", "Meanguera", "Osicala", "Perquín", "San Carlos", "San Fernando", "San Francisco Gotera", "San Isidro", "San Simón", "Sensembra", "Sociedad", "Torola", "Yamabal", "Yoloaiquín"],
+  
+  "La Unión": ["Anamorós", "Bolívar", "Concepción de Oriente", "Conchagua", "El Carmen", "El Sauce", "Intipucá", "La Unión", "Lilisque", "Meanguera del Golfo", "Nueva Esparta", "Pasaquina", "Polorós", "San Alejo", "San José", "Santa Rosa de Lima", "Yayantique", "Yucuaiquín"]
 };
 
 export default function CheckoutScreen({ navigation }) {
   const [telefono, setTelefono] = useState('');
   const [numeroCasa, setNumeroCasa] = useState('');
   const [indicaciones, setIndicaciones] = useState('');
-  const [departamento, setDepartamento] = useState(null);
-  const [municipio, setMunicipio] = useState(null);
+  const [departamento, setDepartamento] = useState('');
+  const [municipio, setMunicipio] = useState('');
 
-  // Manejar cambio de teléfono (solo números, máximo 8)
   const handleTelefonoChange = (text) => {
-    // Remover todo lo que no sea número
     const numeros = text.replace(/[^0-9]/g, '');
-    // Limitar a 8 dígitos
     const telefonoLimitado = numeros.slice(0, 8);
     setTelefono(telefonoLimitado);
   };
 
-  // Formatear teléfono con guión (2250-0000)
   const formatearTelefono = (numero) => {
     if (numero.length <= 4) return numero;
     return `${numero.slice(0, 4)}-${numero.slice(4)}`;
   };
 
   const handleConfirm = async () => {
-    // Validación de teléfono (exactamente 8 dígitos)
     if (telefono.length !== 8) {
-      Alert.alert(
-        'Número inválido',
-        'El teléfono debe tener exactamente 8 dígitos',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Número inválido', 'El teléfono debe tener exactamente 8 dígitos');
       return;
     }
 
-    // Validación de número de casa
     if (!numeroCasa.trim()) {
-      Alert.alert(
-        'Campo requerido',
-        'Por favor ingresa tu número de casa o apartamento',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Campo requerido', 'Por favor ingresa tu número de casa o apartamento');
       return;
     }
 
-    // Validación de departamento
     if (!departamento) {
-      Alert.alert(
-        'Campo requerido',
-        'Por favor selecciona un departamento',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Campo requerido', 'Por favor selecciona un departamento');
       return;
     }
 
-    // Validación de municipio
     if (!municipio) {
-      Alert.alert(
-        'Campo requerido',
-        'Por favor selecciona un municipio',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Campo requerido', 'Por favor selecciona un municipio');
       return;
     }
 
     try {
-      // Preparar datos de envío
       const datosEnvio = {
         telefono: formatearTelefono(telefono),
         numeroCasa: numeroCasa.trim(),
         indicaciones: indicaciones.trim(),
-        departamento: departamento.replace(/_/g, ' '),
+        departamento: departamento,
         municipio: municipio,
-        direccionCompleta: `${numeroCasa.trim()}, ${municipio}, ${departamento.replace(/_/g, ' ')}`
+        direccionCompleta: `${numeroCasa.trim()}, ${municipio}, ${departamento}`
       };
 
-      // Guardar en AsyncStorage
       await AsyncStorage.setItem('datosEnvio', JSON.stringify(datosEnvio));
       console.log('✅ Datos de envío guardados:', datosEnvio);
 
-      // Navegar a Payment
       navigation.navigate('Payment', datosEnvio);
 
     } catch (error) {
@@ -114,7 +109,6 @@ export default function CheckoutScreen({ navigation }) {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0C133F" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#0C133F', '#1a2456']}
         start={{ x: 0, y: 0 }}
@@ -129,7 +123,7 @@ export default function CheckoutScreen({ navigation }) {
             <Ionicons name="arrow-back" size={22} color="#fff" />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>   Información de Entrega</Text>
+          <Text style={styles.headerTitle}>Información de Entrega</Text>
 
           <View style={{ width: 40 }} />
         </View>
@@ -139,7 +133,6 @@ export default function CheckoutScreen({ navigation }) {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {/* Progreso */}
         <View style={styles.progressContainer}>
           <View style={styles.progressStep}>
             <View style={[styles.stepCircle, styles.stepActive]}>
@@ -163,11 +156,9 @@ export default function CheckoutScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Formulario */}
         <View style={styles.formContainer}>
           <Text style={styles.sectionTitle}>Datos de Contacto</Text>
 
-          {/* Teléfono */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="call" size={18} color="#0C133F" />
@@ -189,7 +180,6 @@ export default function CheckoutScreen({ navigation }) {
 
           <Text style={styles.sectionTitle}>Dirección de Entrega</Text>
 
-          {/* Número de Casa */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="home" size={18} color="#0C133F" />
@@ -204,7 +194,6 @@ export default function CheckoutScreen({ navigation }) {
             />
           </View>
 
-          {/* Departamento */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="map" size={18} color="#0C133F" />
@@ -213,22 +202,26 @@ export default function CheckoutScreen({ navigation }) {
             <View style={styles.pickerContainer}>
               <RNPickerSelect
                 onValueChange={(value) => {
+                  console.log('Departamento seleccionado:', value);
                   setDepartamento(value);
-                  setMunicipio(null);
+                  setMunicipio('');
                 }}
                 items={Object.keys(departamentos).map((dep) => ({
-                  label: dep.replace(/_/g, ' '),
+                  label: dep,
                   value: dep,
                 }))}
-                placeholder={{ label: 'Selecciona un departamento...', value: null }}
-                style={customPickerStyles}
+                placeholder={{ 
+                  label: 'Selecciona un departamento...', 
+                  value: '',
+                  color: '#9ca3af'
+                }}
+                style={pickerSelectStyles}
                 value={departamento}
-                Icon={() => <Ionicons name="chevron-down" size={20} color="#6b7280" />}
+                useNativeAndroidPickerStyle={false}
               />
             </View>
           </View>
 
-          {/* Municipio */}
           {departamento && (
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
@@ -237,21 +230,27 @@ export default function CheckoutScreen({ navigation }) {
               </View>
               <View style={styles.pickerContainer}>
                 <RNPickerSelect
-                  onValueChange={(value) => setMunicipio(value)}
+                  onValueChange={(value) => {
+                    console.log('Municipio seleccionado:', value);
+                    setMunicipio(value);
+                  }}
                   items={departamentos[departamento].map((mun) => ({
                     label: mun,
                     value: mun,
                   }))}
-                  placeholder={{ label: 'Selecciona un municipio...', value: null }}
-                  style={customPickerStyles}
+                  placeholder={{ 
+                    label: 'Selecciona un municipio...', 
+                    value: '',
+                    color: '#9ca3af'
+                  }}
+                  style={pickerSelectStyles}
                   value={municipio}
-                  Icon={() => <Ionicons name="chevron-down" size={20} color="#6b7280" />}
+                  useNativeAndroidPickerStyle={false}
                 />
               </View>
             </View>
           )}
 
-          {/* Indicaciones */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="information-circle" size={18} color="#0C133F" />
@@ -268,7 +267,6 @@ export default function CheckoutScreen({ navigation }) {
             />
           </View>
 
-          {/* Info Card */}
           <View style={styles.infoCard}>
             <Ionicons name="shield-checkmark" size={24} color="#10b981" />
             <View style={styles.infoTextContainer}>
@@ -279,7 +277,6 @@ export default function CheckoutScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Botón Confirmar */}
           <TouchableOpacity
             style={styles.confirmButton}
             onPress={handleConfirm}
@@ -292,6 +289,32 @@ export default function CheckoutScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    paddingRight: 40,
+    color: '#1f2937',
+    backgroundColor: '#fff',
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    paddingRight: 40,
+    color: '#1f2937',
+    backgroundColor: '#fff',
+  },
+  placeholder: {
+    color: '#9ca3af',
+  },
+  iconContainer: {
+    top: 16,
+    right: 14,
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -330,6 +353,9 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     marginLeft: -40,
+  },
+  scrollView: {
+    flex: 1,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -464,27 +490,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-const customPickerStyles = {
-  inputIOS: {
-    fontSize: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    paddingRight: 40,
-    color: '#1f2937',
-  },
-  inputAndroid: {
-    fontSize: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    paddingRight: 40,
-    color: '#1f2937',
-  },
-  iconContainer: {
-    top: 16,
-    right: 14,
-  },
-  placeholder: {
-    color: '#9ca3af',
-  },
-};
