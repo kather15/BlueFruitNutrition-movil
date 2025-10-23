@@ -64,6 +64,7 @@ export default function CheckoutScreen({ navigation }) {
   };
 
   const handleConfirm = async () => {
+    // Validaciones
     if (telefono.length !== 8) {
       Alert.alert('Número inválido', 'El teléfono debe tener exactamente 8 dígitos');
       return;
@@ -85,6 +86,7 @@ export default function CheckoutScreen({ navigation }) {
     }
 
     try {
+      // Preparar datos de envío
       const datosEnvio = {
         telefono: formatearTelefono(telefono),
         numeroCasa: numeroCasa.trim(),
@@ -94,9 +96,11 @@ export default function CheckoutScreen({ navigation }) {
         direccionCompleta: `${numeroCasa.trim()}, ${municipio}, ${departamento}`
       };
 
+      // Guardar en AsyncStorage
       await AsyncStorage.setItem('datosEnvio', JSON.stringify(datosEnvio));
       console.log('✅ Datos de envío guardados:', datosEnvio);
 
+      // ✅ Navegar a Payment (pantalla de pago con tarjeta)
       navigation.navigate('Payment', datosEnvio);
 
     } catch (error) {
@@ -118,7 +122,10 @@ export default function CheckoutScreen({ navigation }) {
         <View style={styles.headerContent}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => {
+              // ✅ Navegar correctamente al carrito dentro del TabNavigator
+              navigation.navigate('Main', { screen: 'Carrito' });
+            }}
           >
             <Ionicons name="arrow-back" size={22} color="#fff" />
           </TouchableOpacity>
@@ -133,6 +140,7 @@ export default function CheckoutScreen({ navigation }) {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
+        {/* Indicador de progreso con 3 pasos */}
         <View style={styles.progressContainer}>
           <View style={styles.progressStep}>
             <View style={[styles.stepCircle, styles.stepActive]}>
@@ -159,6 +167,7 @@ export default function CheckoutScreen({ navigation }) {
         <View style={styles.formContainer}>
           <Text style={styles.sectionTitle}>Datos de Contacto</Text>
 
+          {/* Campo de Teléfono */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="call" size={18} color="#0C133F" />
@@ -180,6 +189,7 @@ export default function CheckoutScreen({ navigation }) {
 
           <Text style={styles.sectionTitle}>Dirección de Entrega</Text>
 
+          {/* Campo de Número de Casa */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="home" size={18} color="#0C133F" />
@@ -194,6 +204,7 @@ export default function CheckoutScreen({ navigation }) {
             />
           </View>
 
+          {/* Selector de Departamento */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="map" size={18} color="#0C133F" />
@@ -202,7 +213,6 @@ export default function CheckoutScreen({ navigation }) {
             <View style={styles.pickerContainer}>
               <RNPickerSelect
                 onValueChange={(value) => {
-                  console.log('Departamento seleccionado:', value);
                   setDepartamento(value);
                   setMunicipio('');
                 }}
@@ -218,39 +228,43 @@ export default function CheckoutScreen({ navigation }) {
                 style={pickerSelectStyles}
                 value={departamento}
                 useNativeAndroidPickerStyle={false}
+                Icon={() => <Ionicons name="chevron-down" size={20} color="#6b7280" />}
               />
             </View>
           </View>
 
-          {departamento && (
-            <View style={styles.inputGroup}>
-              <View style={styles.labelRow}>
-                <Ionicons name="location" size={18} color="#0C133F" />
-                <Text style={styles.label}>Municipio *</Text>
-              </View>
-              <View style={styles.pickerContainer}>
-                <RNPickerSelect
-                  onValueChange={(value) => {
-                    console.log('Municipio seleccionado:', value);
-                    setMunicipio(value);
-                  }}
-                  items={departamentos[departamento].map((mun) => ({
-                    label: mun,
-                    value: mun,
-                  }))}
-                  placeholder={{ 
-                    label: 'Selecciona un municipio...', 
-                    value: '',
-                    color: '#9ca3af'
-                  }}
-                  style={pickerSelectStyles}
-                  value={municipio}
-                  useNativeAndroidPickerStyle={false}
-                />
-              </View>
+          {/* Selector de Municipio */}
+          <View style={styles.inputGroup}>
+            <View style={styles.labelRow}>
+              <Ionicons name="navigate" size={18} color="#0C133F" />
+              <Text style={styles.label}>Municipio *</Text>
             </View>
-          )}
+            <View style={styles.pickerContainer}>
+              <RNPickerSelect
+                onValueChange={(value) => setMunicipio(value)}
+                items={
+                  departamento
+                    ? departamentos[departamento].map((mun) => ({
+                        label: mun,
+                        value: mun,
+                      }))
+                    : []
+                }
+                placeholder={{ 
+                  label: departamento ? 'Selecciona un municipio...' : 'Primero selecciona un departamento', 
+                  value: '',
+                  color: '#9ca3af'
+                }}
+                style={pickerSelectStyles}
+                value={municipio}
+                useNativeAndroidPickerStyle={false}
+                disabled={!departamento}
+                Icon={() => <Ionicons name="chevron-down" size={20} color="#6b7280" />}
+              />
+            </View>
+          </View>
 
+          {/* Campo de Indicaciones (Opcional) */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="information-circle" size={18} color="#0C133F" />
@@ -261,14 +275,15 @@ export default function CheckoutScreen({ navigation }) {
               onChangeText={setIndicaciones}
               placeholder="Ej: Portón azul, frente al parque..."
               placeholderTextColor="#9ca3af"
+              style={[styles.input, styles.textArea]}
               multiline
               numberOfLines={3}
-              style={[styles.input, styles.textArea]}
             />
           </View>
 
+          {/* Tarjeta informativa */}
           <View style={styles.infoCard}>
-            <Ionicons name="shield-checkmark" size={24} color="#10b981" />
+            <Ionicons name="shield-checkmark" size={24} color="#15803d" />
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoTitle}>Entrega Segura</Text>
               <Text style={styles.infoText}>
@@ -277,12 +292,13 @@ export default function CheckoutScreen({ navigation }) {
             </View>
           </View>
 
+          {/* Botón de confirmar */}
           <TouchableOpacity
             style={styles.confirmButton}
             onPress={handleConfirm}
           >
             <Text style={styles.confirmButtonText}>Continuar al Pago</Text>
-            <Ionicons name="arrow-forward" size={20} color="#fff" />
+            <Ionicons name="arrow-forward" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
       </ScrollView>

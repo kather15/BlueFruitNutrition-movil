@@ -51,7 +51,7 @@ export default function CarritoScreen({ navigation }) {
     .reduce((sum, i) => sum + i.quantity * i.price, 0)
     .toFixed(2);
 
-  // 🔹 Función para proceder al pago
+  // 🔹 Función para proceder al pago (ACTUALIZADA - CON ID)
   const handleProceedToCheckout = async () => {
     if (items.length === 0) {
       Alert.alert("Carrito vacío", "Agrega productos antes de continuar");
@@ -59,9 +59,10 @@ export default function CarritoScreen({ navigation }) {
     }
 
     try {
-      // Preparar datos de la compra
+      // Preparar datos de la compra - ASEGURANDO que cada producto tenga ID
       const datosCompra = {
         productos: items.map(item => ({
+          id: item.id ? String(item.id) : String(Date.now() + Math.random()), // ⬅️ CAMPO REQUERIDO POR EL BACKEND
           nombre: item.name,
           cantidad: item.quantity,
           precio: item.price,

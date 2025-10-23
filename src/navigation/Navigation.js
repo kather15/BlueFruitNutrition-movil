@@ -43,21 +43,36 @@ const AppNavigator = () => {
           component={ProductDetail} 
           options={{ headerShown: false }}
         />
+        
+        {/* 🛒 FLUJO DE COMPRA (fuera de tabs) */}
         <Stack.Screen 
-          name="Bill" 
-          component={BillScreen}
-          options={{ headerShown: false }}
+          name="Checkout" 
+          component={CheckoutScreen}
+          options={{ 
+            headerShown: false,
+            // Permite volver atrás fácilmente
+            presentation: 'card'
+          }}
         />
         <Stack.Screen 
           name="Payment" 
           component={PaymentScreen}
-          options={{ headerShown: false }}
+          options={{ 
+            headerShown: false,
+            presentation: 'card'
+          }}
         />
         <Stack.Screen 
-          name="Checkout" 
-          component={CheckoutScreen}
-          options={{ headerShown: false }}
+          name="Bill" 
+          component={BillScreen}
+          options={{ 
+            headerShown: false,
+            // Evita que el usuario vuelva atrás desde Bill
+            gestureEnabled: false
+          }}
         />
+
+        {/* Otras pantallas */}
         <Stack.Screen 
           name="StoresMap" 
           component={StoresMapScreen}

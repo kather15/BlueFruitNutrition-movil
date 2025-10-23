@@ -12,13 +12,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import * as MailComposer from 'expo-mail-composer';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system/legacy'; 
 import { Ionicons } from '@expo/vector-icons';
 
 const API_URL = 'https://bluefruitnutrition-production.up.railway.app/api/Bill';
+const ORDENES_API_URL = 'https://bluefruitnutrition-production.up.railway.app/api/ordenes';
 
 export default function BillScreen({ navigation, route }) {
   const [user, setUser] = useState(null);
@@ -27,11 +26,17 @@ export default function BillScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [enviandoEmail, setEnviandoEmail] = useState(false);
   const [descargando, setDescargando] = useState(false);
+  const [ordenCreada, setOrdenCreada] = useState(false);
+  const [errorCreandoOrden, setErrorCreandoOrden] = useState(false);
 
   useEffect(() => {
-    cargarDatos();
-    limpiarCarrito();
+    inicializarPantalla();
   }, []);
+
+  const inicializarPantalla = async () => {
+    await cargarDatos();
+    await limpiarCarrito();
+  };
 
   const limpiarCarrito = async () => {
     try {
@@ -46,7 +51,7 @@ export default function BillScreen({ navigation, route }) {
     try {
       console.log('🔍 Cargando datos...');
       
-      // Cargar usuario desde AsyncStorage
+      // Cargar usuario
       const userString = await AsyncStorage.getItem('user');
       if (userString) {
         const userData = JSON.parse(userString);
@@ -70,12 +75,17 @@ export default function BillScreen({ navigation, route }) {
         console.log('✅ Datos envío cargados:', envio);
       }
 
-      // Si los datos vienen por navegación (route.params)
+      // Si los datos vienen por navegación
       if (route?.params) {
         if (route.params.datosCompra) setDatosCompra(route.params.datosCompra);
         if (route.params.datosEnvio) setDatosEnvio(route.params.datosEnvio);
         if (route.params.user) setUser(route.params.user);
       }
+
+      // Esperar un momento antes de crear la orden
+      setTimeout(async () => {
+        await crearOrdenEnBackend();
+      }, 500);
 
     } catch (error) {
       console.error('❌ Error cargando datos:', error);
@@ -85,16 +95,153 @@ export default function BillScreen({ navigation, route }) {
     }
   };
 
+  // ✅ Crear orden en el backend del administrador (ADAPTADO AL SCHEMA)
+  const crearOrdenEnBackend = async () => {
+    try {
+      if (ordenCreada) {
+        console.log('⚠️ Orden ya fue creada previamente');
+        return;
+      }
+
+      console.log('📦 Creando orden en el backend...');
+
+      // Obtener datos frescos de AsyncStorage
+      const userString = await AsyncStorage.getItem('user');
+      const compraString = await AsyncStorage.getItem('datosCompra');
+      const envioString = await AsyncStorage.getItem('datosEnvio');
+
+      if (!userString || !compraString) {
+        console.warn('⚠️ Faltan datos para crear la orden');
+        setErrorCreandoOrden(true);
+        return;
+      }
+
+      const userData = JSON.parse(userString);
+      const compraData = JSON.parse(compraString);
+      const envioData = envioString ? JSON.parse(envioString) : null;
+
+      console.log('🔍 Datos parseados:');
+      console.log('  - Usuario:', userData);
+      console.log('  - Compra:', compraData);
+      console.log('  - Envío:', envioData);
+
+      // ✅ Preparar productos EXACTAMENTE como el schema lo requiere
+      const productos = compraData.productos.map(producto => ({
+        id: producto.id || String(Date.now() + Math.random()), // ⬅️ Campo requerido
+        nombre: producto.nombre,
+        precio: producto.precio,
+        cantidad: producto.cantidad
+        // ❌ NO enviar: subtotal, sabor, imagen (no están en el schema)
+      }));
+
+      // Calcular total de items
+      const totalItems = productos.reduce((sum, p) => sum + p.cantidad, 0);
+
+      // ✅ Preparar payload EXACTAMENTE como el backend lo espera
+      const ordenPayload = {
+        numeroOrden: compraData.orden?.numeroOrden || `ORD-${Date.now()}`,
+        fecha: compraData.orden?.fecha || new Date().toISOString(),
+        total: compraData.total,
+        items: totalItems,
+        productos: productos,
+        estado: 'En proceso' // ⬅️ Debe ser "En proceso" o "Terminado"
+        // ❌ NO enviar: cliente, direccionEnvio (no están en el schema)
+      };
+
+      console.log('📤 Enviando orden al servidor (ADAPTADO AL SCHEMA):');
+      console.log('URL:', ORDENES_API_URL);
+      console.log('Payload:', JSON.stringify(ordenPayload, null, 2));
+
+      const response = await fetch(ORDENES_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(ordenPayload),
+      });
+
+      console.log('📥 Status del servidor:', response.status);
+      
+      // Intentar parsear la respuesta
+      let result;
+      try {
+        const responseText = await response.text();
+        console.log('📥 Respuesta cruda:', responseText);
+        result = JSON.parse(responseText);
+        console.log('📥 Respuesta parseada:', result);
+      } catch (parseError) {
+        console.error('❌ Error parseando respuesta:', parseError);
+        result = { mensaje: 'Error al parsear respuesta del servidor' };
+      }
+
+      if (response.ok) {
+        console.log('✅ Orden creada exitosamente');
+        setOrdenCreada(true);
+        setErrorCreandoOrden(false);
+        
+        if (result._id) {
+          await AsyncStorage.setItem('ultimaOrdenId', result._id);
+        }
+
+        // 🔹 IMPORTANTE: Guardar cliente y envío por separado para tu control interno
+        // (ya que el backend no los guarda en la orden)
+        if (envioData) {
+          const datosOrdenCompleta = {
+            ordenId: result._id,
+            numeroOrden: ordenPayload.numeroOrden,
+            cliente: {
+              id: userData.id || userData._id,
+              nombre: userData.name || 'Cliente',
+              email: userData.email || '',
+              telefono: envioData?.telefono || ''
+            },
+            direccionEnvio: envioData,
+            fecha: ordenPayload.fecha
+          };
+          await AsyncStorage.setItem('ultimaOrdenCompleta', JSON.stringify(datosOrdenCompleta));
+          console.log('💾 Datos completos guardados localmente para referencia');
+        }
+        
+        Alert.alert(
+          '¡Orden Creada!',
+          `Tu orden ${ordenPayload.numeroOrden} ha sido registrada correctamente.`,
+          [{ text: 'Entendido' }]
+        );
+      } else {
+        console.error('❌ Error del servidor:', result);
+        setErrorCreandoOrden(true);
+        
+        Alert.alert(
+          'Error al crear orden',
+          `El servidor respondió: ${result.mensaje || result.message || 'Error desconocido'}`,
+          [
+            { text: 'Reintentar', onPress: () => crearOrdenEnBackend() },
+            { text: 'Cancelar', style: 'cancel' }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('❌ Error creando orden:', error);
+      console.error('❌ Stack:', error.stack);
+      setErrorCreandoOrden(true);
+      
+      Alert.alert(
+        'Error de Conexión',
+        'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+        [
+          { text: 'Reintentar', onPress: () => crearOrdenEnBackend() },
+          { text: 'Cancelar', style: 'cancel' }
+        ]
+      );
+    }
+  };
+
+  // ✅ Función para descargar factura (con API LEGACY)
   const handleDescargarFactura = async () => {
     console.log('🔽 INICIANDO DESCARGA DE FACTURA');
     
-    if (!user) {
+    if (!user || !user.id) {
       Alert.alert('Error', 'Usuario no autenticado');
-      return;
-    }
-
-    if (!user.id) {
-      Alert.alert('Error', 'ID de usuario no encontrado');
       return;
     }
 
@@ -104,10 +251,8 @@ export default function BillScreen({ navigation, route }) {
       const tipoUsuario = user.role === 'customer' ? 'cliente' : 'distribuidor';
       
       const datosFactura = {
-        productos: datosCompra?.productos || [
-          { nombre: "Producto Test", cantidad: 1, precio: 50.00 }
-        ],
-        total: datosCompra?.total || 50.00,
+        productos: datosCompra?.productos || [],
+        total: datosCompra?.total || 0,
         orden: datosCompra?.orden || { numeroOrden: 'TEST-' + Date.now() },
         datosEnvio: datosEnvio || { 
           nombre: user.name || 'Cliente', 
@@ -124,123 +269,67 @@ export default function BillScreen({ navigation, route }) {
       const url = `${API_URL}/pdf?${params.toString()}`;
       console.log('🔗 URL:', url);
 
-      // Descargar el PDF
-      const fileUri = FileSystem.documentDirectory + `factura_${datosFactura.orden.numeroOrden}.pdf`;
+      const fileName = `factura_${datosFactura.orden.numeroOrden}.pdf`;
+      const fileUri = FileSystem.documentDirectory + fileName;
       
-      const downloadResult = await FileSystem.downloadAsync(url, fileUri);
-      console.log('✅ PDF descargado:', downloadResult.uri);
+      console.log('📥 Descargando a:', fileUri);
 
-      // Compartir el PDF
+      // ✅ Usando la API LEGACY de FileSystem
+      const { uri } = await FileSystem.downloadAsync(url, fileUri);
+      
+      console.log('✅ PDF descargado:', uri);
+
+      // Compartir o guardar el PDF
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(downloadResult.uri, {
+        await Sharing.shareAsync(uri, {
           mimeType: 'application/pdf',
           dialogTitle: 'Factura de Compra',
           UTI: 'com.adobe.pdf'
         });
       } else {
-        Alert.alert('Éxito', 'Factura descargada en: ' + fileUri);
+        Alert.alert(
+          'Factura Descargada', 
+          `Tu factura ha sido guardada en: ${uri}`
+        );
       }
 
-      // Navegar al Home después de descargar (PRESERVANDO EL USUARIO)
       setTimeout(() => {
         volverAlHome();
       }, 1500);
 
     } catch (error) {
       console.error('❌ Error descargando factura:', error);
-      Alert.alert('Error', 'No se pudo descargar la factura: ' + error.message);
+      Alert.alert('Error', 'No se pudo descargar la factura. Intenta nuevamente.');
     } finally {
       setDescargando(false);
     }
   };
 
-  const handleEnviarCorreo = async () => {
-    console.log('📧 INICIANDO ENVÍO DE EMAIL');
-    
-    if (!user) {
-      Alert.alert('Error', 'Usuario no autenticado');
-      return;
-    }
-
-    setEnviandoEmail(true);
-
-    try {
-      const tipoUsuario = user.role === 'customer' ? 'cliente' : 'distribuidor';
-      
-      const datosFactura = {
-        productos: datosCompra?.productos || [
-          { nombre: "Producto Test", cantidad: 1, precio: 50.00 }
-        ],
-        total: datosCompra?.total || 50.00,
-        orden: datosCompra?.orden || { numeroOrden: 'TEST-' + Date.now() },
-        datosEnvio: datosEnvio || { 
-          nombre: user.name || 'Cliente', 
-          direccionCompleta: 'Dirección no especificada' 
-        }
-      };
-
-      const payload = {
-        userId: user.id,
-        tipo: tipoUsuario,
-        datosCompra: datosFactura
-      };
-
-      console.log('📤 Enviando payload:', payload);
-
-      const response = await fetch(`${API_URL}/email`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      console.log('📥 Respuesta:', response.status);
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Email enviado:', result);
-        Alert.alert('Éxito', '¡Factura enviada a tu correo exitosamente!');
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al enviar la factura');
-      }
-
-    } catch (error) {
-      console.error('❌ Error enviando email:', error);
-      Alert.alert('Error', 'No se pudo enviar la factura: ' + error.message);
-    } finally {
-      setEnviandoEmail(false);
-    }
-  };
-
   const volverAlHome = async () => {
     try {
-      // IMPORTANTE: Limpiar solo datos de compra y envío, NO el usuario
       await AsyncStorage.multiRemove(['datosCompra', 'datosEnvio']);
       console.log('✅ Datos de compra y envío limpiados');
       
-      // Verificar que el usuario sigue en AsyncStorage
       const userString = await AsyncStorage.getItem('user');
-      const userData = userString ? JSON.parse(userString) : null;
       
-      console.log('👤 Usuario después de limpiar:', userData);
-      
-      if (userData && userData.id) {
-        // Navegar al Home PRESERVANDO el usuario
+      if (userString) {
+        const userData = JSON.parse(userString);
+        
         navigation.reset({
           index: 0,
           routes: [{ 
-            name: 'Main', 
+            name: 'Main',
             params: { 
               screen: 'Home',
-              userId: userData.id,
-              userName: userData.name,
-            } 
+              params: {
+                userId: userData.id || userData._id,
+                userName: userData.name,
+                userData: userData
+              }
+            }
           }],
         });
       } else {
-        console.warn('⚠️ No se encontró usuario, redirigiendo al login');
         navigation.reset({
           index: 0,
           routes: [{ name: 'Login' }],
@@ -248,7 +337,6 @@ export default function BillScreen({ navigation, route }) {
       }
     } catch (error) {
       console.error('❌ Error en volverAlHome:', error);
-      // En caso de error, intentar navegar de todas formas
       navigation.reset({
         index: 0,
         routes: [{ name: 'Main', params: { screen: 'Home' } }],
@@ -261,51 +349,48 @@ export default function BillScreen({ navigation, route }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0c133f" />
-          <Text style={styles.loadingText}>Cargando datos...</Text>
+          <Text style={styles.loadingText}>Procesando tu orden...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container}>
       <ScrollView 
-        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={volverAlHome}
-          >
-            <Ionicons name="arrow-back" size={24} color="#0c133f" />
-          </TouchableOpacity>
-        </View>
-
         {/* Ícono de éxito */}
         <View style={styles.successIcon}>
           <View style={styles.successCircle}>
-            <Ionicons name="checkmark-circle" size={80} color="#10b981" />
+            <Ionicons 
+              name={errorCreandoOrden ? "warning" : "checkmark-circle"} 
+              size={80} 
+              color={errorCreandoOrden ? "#f59e0b" : "#10b981"} 
+            />
           </View>
         </View>
 
         {/* Título */}
-        <Text style={styles.titulo}>¡Compra Exitosa!</Text>
+        <Text style={styles.titulo}>
+          {errorCreandoOrden ? '⚠️ Orden Pendiente' : '¡Orden Confirmada!'}
+        </Text>
         <Text style={styles.subtitulo}>
-          Gracias por tu compra, {user?.name || user?.email?.split('@')[0] || 'cliente'}
+          {errorCreandoOrden 
+            ? 'Hubo un problema al registrar tu orden en el sistema' 
+            : 'Tu pedido ha sido registrado exitosamente'
+          }
         </Text>
 
-        {/* Tarjeta de Resumen */}
+        {/* Información de la orden */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="receipt-outline" size={24} color="#0c133f" />
-            <Text style={styles.cardTitle}>Resumen del Pedido</Text>
+            <Text style={styles.cardTitle}>Detalles de la Orden</Text>
           </View>
-
           <View style={styles.divider} />
-
-          {/* Información del pedido */}
+          
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Número de Orden:</Text>
             <Text style={styles.infoValue}>
@@ -316,27 +401,41 @@ export default function BillScreen({ navigation, route }) {
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Fecha:</Text>
             <Text style={styles.infoValue}>
-              {new Date().toLocaleDateString('es-ES')}
+              {new Date().toLocaleDateString('es-SV', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+              })}
             </Text>
           </View>
 
-          {/* Lista de productos */}
-          {datosCompra?.productos && datosCompra.productos.length > 0 && (
-            <View style={styles.productosContainer}>
-              <Text style={styles.productosTitle}>Productos:</Text>
-              {datosCompra.productos.map((producto, index) => (
-                <View key={index} style={styles.productoItem}>
-                  <View style={styles.productoInfo}>
-                    <Text style={styles.productoNombre}>{producto.nombre}</Text>
-                    <Text style={styles.productoCantidad}>x{producto.cantidad}</Text>
-                  </View>
-                  <Text style={styles.productoPrecio}>
-                    ${(producto.precio * producto.cantidad).toFixed(2)}
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Estado:</Text>
+            <Text style={[styles.infoValue, { color: errorCreandoOrden ? '#f59e0b' : '#10b981' }]}>
+              {errorCreandoOrden ? 'Error al registrar' : 'En proceso'}
+            </Text>
+          </View>
+
+          {/* Productos */}
+          <View style={styles.productosContainer}>
+            <Text style={styles.productosTitle}>Productos:</Text>
+            {datosCompra?.productos?.map((producto, index) => (
+              <View key={index} style={styles.productoItem}>
+                <View style={styles.productoInfo}>
+                  <Text style={styles.productoNombre}>
+                    {producto.nombre}
+                    {producto.sabor && ` (${producto.sabor})`}
+                  </Text>
+                  <Text style={styles.productoCantidad}>
+                    x{producto.cantidad}
                   </Text>
                 </View>
-              ))}
-            </View>
-          )}
+                <Text style={styles.productoPrecio}>
+                  ${(producto.precio * producto.cantidad).toFixed(2)}
+                </Text>
+              </View>
+            ))}
+          </View>
 
           {/* Total */}
           <View style={styles.totalContainer}>
@@ -364,49 +463,52 @@ export default function BillScreen({ navigation, route }) {
         )}
 
         {/* Mensaje informativo */}
-        <View style={styles.infoCard}>
-          <Ionicons name="information-circle" size={24} color="#3b82f6" />
-          <Text style={styles.infoCardText}>
-            Puedes descargar tu factura o recibirla directamente en tu correo electrónico
+        <View style={[styles.infoCard, errorCreandoOrden && styles.warningCard]}>
+          <Ionicons 
+            name={errorCreandoOrden ? "warning" : "information-circle"} 
+            size={24} 
+            color={errorCreandoOrden ? "#d97706" : "#3b82f6"} 
+          />
+          <Text style={[styles.infoCardText, errorCreandoOrden && styles.warningText]}>
+            {errorCreandoOrden
+              ? 'No se pudo registrar tu orden en el sistema administrativo. Por favor contacta a soporte.'
+              : 'Puedes descargar tu factura. Tu orden ha sido registrada correctamente.'
+            }
           </Text>
         </View>
 
         {/* Botones de acción */}
-        <View style={styles.botonesContainer}>
-          {/* Botón Enviar Email - Comentado por ahora
+        {!errorCreandoOrden && (
+          <View style={styles.botonesContainer}>
+            <TouchableOpacity 
+              style={[styles.boton, styles.botonSecundario]}
+              onPress={handleDescargarFactura}
+              disabled={descargando}
+            >
+              {descargando ? (
+                <ActivityIndicator size="small" color="#0c133f" />
+              ) : (
+                <>
+                  <Ionicons name="download-outline" size={20} color="#0c133f" style={styles.icono} />
+                  <Text style={[styles.botonTexto, styles.botonTextoSecundario]}>
+                    Descargar PDF
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Botón para reintentar si hubo error */}
+        {errorCreandoOrden && (
           <TouchableOpacity 
             style={[styles.boton, styles.botonPrimario]}
-            onPress={handleEnviarCorreo}
-            disabled={enviandoEmail}
+            onPress={crearOrdenEnBackend}
           >
-            {enviandoEmail ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="mail-outline" size={20} color="#fff" style={styles.icono} />
-                <Text style={styles.botonTexto}>Enviar al Correo</Text>
-              </>
-            )}
+            <Ionicons name="refresh" size={20} color="#fff" style={styles.icono} />
+            <Text style={styles.botonTexto}>Reintentar Registro</Text>
           </TouchableOpacity>
-          */}
-
-          <TouchableOpacity 
-            style={[styles.boton, styles.botonSecundario]}
-            onPress={handleDescargarFactura}
-            disabled={descargando}
-          >
-            {descargando ? (
-              <ActivityIndicator size="small" color="#0c133f" />
-            ) : (
-              <>
-                <Ionicons name="download-outline" size={20} color="#0c133f" style={styles.icono} />
-                <Text style={[styles.botonTexto, styles.botonTextoSecundario]}>
-                  Descargar PDF
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+        )}
 
         {/* Botón para volver al inicio */}
         <TouchableOpacity 
@@ -435,29 +537,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
   },
-  header: {
-    marginBottom: 20,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
   successIcon: {
     alignItems: 'center',
     marginBottom: 20,
+    marginTop: 20,
   },
   successCircle: {
     backgroundColor: '#f0fdf4',
@@ -592,12 +682,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#bfdbfe',
   },
+  warningCard: {
+    backgroundColor: '#fef3c7',
+    borderColor: '#fde68a',
+  },
   infoCardText: {
     flex: 1,
     fontSize: 13,
     color: '#1e40af',
     marginLeft: 12,
     lineHeight: 20,
+  },
+  warningText: {
+    color: '#92400e',
   },
   botonesContainer: {
     gap: 12,
@@ -613,6 +710,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    marginBottom: 12,
   },
   botonPrimario: {
     backgroundColor: '#0c133f',
@@ -635,7 +733,7 @@ const styles = StyleSheet.create({
   },
   botonHome: {
     flexDirection: 'row',
-    marginTop: 16,
+    marginTop: 8,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',

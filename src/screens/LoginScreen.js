@@ -42,39 +42,44 @@ const LoginScreen = ({ navigation }) => {
 
       const data = await response.json();
 
-      if (response.ok) {
-        if (data.role !== 'customer') {
-          setLoading(false);
-          Alert.alert('Error', 'Solo clientes pueden ingresar aquí');
-          return;
-        }
+     if (response.ok) {
+  if (data.role !== 'customer') {
+    setLoading(false);
+    Alert.alert('Error', 'Solo clientes pueden ingresar aquí');
+    return;
+  }
 
-        // Preparar datos del usuario
-        const userData = {
-          id: data.user?.id || data.user?._id || data.id || data._id,
-          name: data.user?.name || data.name,
-          email: data.user?.email || data.email || email,
-          role: data.role || data.user?.role || 'customer',
-          token: data.token || '',
-        };
+  // Preparar datos del usuario con TODOS los campos posibles
+  const userData = {
+    id: data.user?.id || data.user?._id || data.id || data._id,
+    name: data.user?.name || data.name,
+    lastName: data.user?.lastName || data.lastName,
+    email: data.user?.email || data.email || email,
+    phone: data.user?.phone || data.phone,
+    role: data.role || data.user?.role || 'customer',
+    token: data.token || '',
+  };
 
-        console.log('✅ Datos del usuario a guardar:', userData);
+  console.log('✅ Datos del usuario a guardar:', userData);
 
-        // Guardar en AsyncStorage
-        await AsyncStorage.setItem('user', JSON.stringify(userData));
-        
-        // Verificar que se guardó correctamente
-        const savedUser = await AsyncStorage.getItem('user');
-        console.log('✅ Usuario guardado en AsyncStorage:', savedUser);
+  // Guardar en AsyncStorage
+  await AsyncStorage.setItem('user', JSON.stringify(userData));
+  
+  // Verificar que se guardó correctamente
+  const savedUser = await AsyncStorage.getItem('user');
+  console.log('✅ Usuario verificado en AsyncStorage:', savedUser);
 
-        setLoading(false);
-        Alert.alert('Éxito', 'Login exitoso');
+  setLoading(false);
+  Alert.alert('Éxito', 'Login exitoso');
 
-        // Navegar a Main con los datos del usuario
-        navigation.replace('Main', {
-          userId: userData.id,
-          userName: userData.name,
-        });
+  // Navegar a Main con los datos del usuario
+  navigation.replace('Main', {
+    userId: userData.id,
+    userName: userData.name,
+    userData: userData,
+    screen: 'Home'
+  });
+
 
       } else {
         setLoading(false);

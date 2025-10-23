@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Platform, Keyboard } from 'react-native';
+import { View, Platform, Keyboard, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Productos from '../screens/Productos';
@@ -13,41 +13,56 @@ import PerfilScreen from '../screens/PerfilScreen';
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = ({ route, navigation }) => {
-  // Obtener userId y userName de los parámetros de ruta
-  const { userId, userName, screen } = route?.params || {};
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Cargar datos del usuario desde AsyncStorage
   useEffect(() => {
     const loadUserData = async () => {
       try {
         const userString = await AsyncStorage.getItem('user');
+        console.log('🔄 TabNavigator - Cargando usuario:', userString);
+        
         if (userString) {
           const user = JSON.parse(userString);
           setUserData(user);
-          console.log('✅ Usuario cargado en TabNavigator:', user);
+          console.log(' Usuario cargado en TabNavigator:', user);
         } else {
-          console.warn('⚠️ No hay usuario en AsyncStorage');
+          console.warn(' No hay usuario en AsyncStorage');
+          // Verificar si viene en route.params
+          if (route?.params?.userData) {
+            console.log(' Usuario encontrado en params:', route.params.userData);
+            setUserData(route.params.userData);
+            // Guardar en AsyncStorage para futuras cargas
+            await AsyncStorage.setItem('user', JSON.stringify(route.params.userData));
+          }
         }
       } catch (error) {
-        console.error('❌ Error cargando usuario:', error);
+        console.error(' Error cargando usuario:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
     
     loadUserData();
-  }, []);
+  }, [route?.params]);
 
   // Navegar a la pantalla específica si se pasa como parámetro
   useEffect(() => {
-    if (screen && navigation) {
+    const targetScreen = route?.params?.screen;
+    const screenParams = route?.params?.params;
+    
+    if (targetScreen && navigation && !isLoading) {
+      console.log(' Navegando a:', targetScreen, 'con params:', screenParams);
       // Pequeño delay para asegurar que los tabs estén montados
       setTimeout(() => {
-        navigation.navigate(screen);
+        navigation.navigate(targetScreen, screenParams);
       }, 100);
     }
-  }, [screen, navigation]);
+  }, [route?.params?.screen, navigation, isLoading]);
 
+  // Listener de teclado para iOS y Android
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
@@ -68,9 +83,56 @@ const TabNavigator = ({ route, navigation }) => {
     };
   }, []);
 
-  // Combinar datos de route params y AsyncStorage
-  const finalUserId = userId || userData?.id || userData?._id;
-  const finalUserName = userName || userData?.name || userData?.email?.split('@')[0];
+  // Listener para cambios en AsyncStorage (sincronización)
+  useEffect(() => {
+    const checkUserInterval = setInterval(async () => {
+      try {
+        const userString = await AsyncStorage.getItem('user');
+        if (userString) {
+          const user = JSON.parse(userString);
+          // Solo actualizar si hay cambios
+          if (JSON.stringify(user) !== JSON.stringify(userData)) {
+            console.log(' Usuario actualizado desde AsyncStorage');
+            setUserData(user);
+          }
+        } else if (userData !== null) {
+          // Si se borró el usuario de AsyncStorage, actualizar estado
+          console.warn(' Usuario removido de AsyncStorage');
+          setUserData(null);
+        }
+      } catch (error) {
+        console.error(' Error verificando usuario:', error);
+      }
+    }, 2000); // Verificar cada 2 segundos
+
+    return () => clearInterval(checkUserInterval);
+  }, [userData]);
+
+  // Combinar datos de route params y AsyncStorage (prioridad a userData del estado)
+  const finalUserId = userData?.id || userData?._id || route?.params?.userId;
+  const finalUserName = userData?.name || route?.params?.userName || userData?.email?.split('@')[0];
+  const finalUserData = userData || route?.params?.userData;
+
+  console.log(' Datos finales en TabNavigator:', {
+    userId: finalUserId,
+    userName: finalUserName,
+    hasUserData: !!finalUserData,
+    userDataKeys: finalUserData ? Object.keys(finalUserData) : []
+  });
+
+  // Mostrar loading mientras se cargan los datos
+  if (isLoading) {
+    return (
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        backgroundColor: '#f8f9fa'
+      }}>
+        <ActivityIndicator size="large" color="#0C133F" />
+      </View>
+    );
+  }
 
   return (
     <Tab.Navigator
@@ -135,7 +197,12 @@ const TabNavigator = ({ route, navigation }) => {
         initialParams={{ 
           userId: finalUserId, 
           userName: finalUserName,
-          userData: userData 
+          userData: finalUserData 
+        }}
+        listeners={{
+          focus: () => {
+            console.log(' Home enfocado con userId:', finalUserId);
+          }
         }}
       />
       <Tab.Screen 
@@ -144,7 +211,12 @@ const TabNavigator = ({ route, navigation }) => {
         initialParams={{ 
           userId: finalUserId, 
           userName: finalUserName,
-          userData: userData 
+          userData: finalUserData 
+        }}
+        listeners={{
+          focus: () => {
+            console.log(' IMC enfocado con userId:', finalUserId);
+          }
         }}
       />
       <Tab.Screen 
@@ -153,7 +225,12 @@ const TabNavigator = ({ route, navigation }) => {
         initialParams={{ 
           userId: finalUserId, 
           userName: finalUserName,
-          userData: userData 
+          userData: finalUserData 
+        }}
+        listeners={{
+          focus: () => {
+            console.log(' Productos enfocado con userId:', finalUserId);
+          }
         }}
       />
       <Tab.Screen 
@@ -162,7 +239,12 @@ const TabNavigator = ({ route, navigation }) => {
         initialParams={{ 
           userId: finalUserId, 
           userName: finalUserName,
-          userData: userData 
+          userData: finalUserData 
+        }}
+        listeners={{
+          focus: () => {
+            console.log(' Carrito enfocado con userId:', finalUserId);
+          }
         }}
       />
       <Tab.Screen 
@@ -171,7 +253,12 @@ const TabNavigator = ({ route, navigation }) => {
         initialParams={{ 
           userId: finalUserId, 
           userName: finalUserName,
-          userData: userData 
+          userData: finalUserData 
+        }}
+        listeners={{
+          focus: () => {
+            console.log(' Perfil enfocado con userId:', finalUserId);
+          }
         }}
       />
     </Tab.Navigator>
