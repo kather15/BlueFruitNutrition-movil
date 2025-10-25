@@ -73,12 +73,15 @@ const LoginScreen = ({ navigation }) => {
   Alert.alert('Éxito', 'Login exitoso');
 
   // Navegar a Main con los datos del usuario
-  navigation.replace('Main', {
+ navigation.replace('Main', {
+  screen: 'Home',
+  params: {
     userId: userData.id,
     userName: userData.name,
-    userData: userData,
-    screen: 'Home'
-  });
+    userData: userData
+  }
+});
+
 
 
       } else {
